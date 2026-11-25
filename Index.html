@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Content Security Policy (CSP) untuk mencegah eksekusi skrip injeksi berbahaya -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:;" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>BAHIMPU — Form Pendaftaran Open Trip &amp; Admin CMS</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cinzel, Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Cinzel', 'serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            borneo: {
+              dark: '#0f2419',
+              card: '#163022',
+              gold: '#d4af37',
+              cream: '#f9f7f2',
+              terracotta: '#c85a32',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --theme-bg: #0f2419;
+      --theme-card: #163022;
+      --theme-gold: #d4af37;
+      --theme-accent: #c85a32;
+    }
+    body {
+      background-color: var(--theme-bg);
+      color: #f9f7f2;
+      background-image:
+        radial-gradient(circle at 12% 10%, rgba(212, 175, 55, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 88% 25%, rgba(200, 90, 50, 0.12) 0%, transparent 50%);
+    }
+    .gold-gradient {
+      background: linear-gradient(135deg, #f1d475 0%, var(--theme-gold) 55%, #9e7b18 100%);
+    }
+    .card-selected {
+      border-color: var(--theme-gold) !important;
+      box-shadow: 0 0 0 1px var(--theme-gold), 0 12px 28px -6px rgba(212, 175, 55, 0.25);
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #receipt-printable, #receipt-printable * { visibility: visible; }
+      #receipt-printable {
+        position: absolute; left: 0; top: 0; width: 100%;
+        background: #ffffff !important; color: #111827 !important;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- BANNER PENGUMUMAN DINAMIS -->
+  <div id="announcement-bar" class="bg-gradient-to-r from-[#c85a32] via-[#b84d27] to-[#c85a32] text-white text-xs font-semibold py-2 px-4 text-center tracking-wide border-b border-amber-300/20">
+    <i class="fa-solid fa-bullhorn mr-1.5"></i>
+    <span id="announcement-text">Open Trip Meratus &amp; Kalsel 2026 Dibuka! Kuota Terbatas — Daftar Sekarang.</span>
+  </div>
+
+  <!-- HERO & BRANDING HEADER -->
+  <header class="relative overflow-hidden border-b border-amber-400/20 bg-gradient-to-b from-[#091710] via-[#0f2419] to-[#0f2419]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-7 sm:py-9 relative z-10">
+      
+      <!-- Top Utility Bar: Security Shield Badge & Tombol Admin -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+          <span>Proteksi Aktif: SHA-256 Auth • Strict XSS Guard • Anti-Spam</span>
+        </div>
+
+        <button type="button" id="btn-open-admin" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-stone-950 border border-amber-400/30 text-amber-300 text-xs font-bold transition flex items-center gap-2 shadow">
+          <i class="fa-solid fa-lock"></i>
+          <span id="admin-btn-label">Admin / Pengelola</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <!-- Header Tipografi Bersih Tanpa Logo -->
+        <div class="flex flex-col items-center md:items-start text-center md:text-left">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-2.5">
+              <i class="fa-solid fa-compass"></i> Open Trip &amp; Adventure Organizer • Kalsel
+            </div>
+            <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-wide text-amber-400 drop-shadow">
+              <span id="brand-title-display">BAHIMPU</span>
+              <span id="brand-estd-display" class="text-xs sm:text-sm font-sans font-bold text-stone-200 align-middle ml-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/10">ESTD 2026</span>
+            </h1>
+            <p id="brand-tagline-display" class="mt-2.5 text-sm sm:text-base font-bold tracking-widest text-amber-100 uppercase">
+              “BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI”
+            </p>
+            <p id="brand-desc-display" class="mt-2 text-xs sm:text-sm text-stone-300/85 max-w-2xl leading-relaxed">
+              Formulir pendaftaran resmi pendakian Pegunungan Meratus &amp; Kalimantan Selatan. Pilih jalur impianmu, atur paket layanan, dan selesaikan pembayaran dalam satu langkah.
+            </p>
+          </div>
+        </div>
+
+        <!-- Info Kontak Cepat -->
+        <div class="flex flex-wrap justify-center md:justify-end gap-3 text-xs">
+          <div class="px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/10 flex items-center gap-2.5">
+            <i class="fa-solid fa-mountain-sun text-amber-400 text-base"></i>
+            <div>
+              <div class="text-stone-400">Wilayah Operasional</div>
+              <div class="font-semibold text-stone-100">Kalimantan Selatan</div>
+            </div>
+          </div>
+          <div class="px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/10 flex items-center gap-2.5">
+            <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
+            <div>
+              <div class="text-stone-400">Admin WhatsApp</div>
+              <div id="header-wa-display" class="font-mono font-semibold text-stone-100">0812-5199-2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN FORM PENDAFTARAN (PUBLIC VIEW) -->
+  <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 flex-1">
+    <form id="trip-registration-form" novalidate class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Honeypot Anti-Bot Field (Tersembunyi dari manusia, jebakan untuk spam bot) -->
+      <div class="hidden" aria-hidden="true">
+        <label for="website-url-trap">Jangan isi kolom ini</label>
+        <input type="text" id="website-url-trap" name="website_url_trap" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <!-- KOLOM KIRI (8 Kolom) -->
+      <div class="lg:col-span-8 space-y-8">
+
+        <!-- STEP 1: PILIH DESTINASI PENDAKIAN -->
+        <section class="bg-borneo-card rounded-2xl p-5 sm:p-7 border border-white/10 shadow-xl">
+          <div class="flex items-center justify-between gap-2 mb-5">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl gold-gradient text-stone-950 font-extrabold flex items-center justify-center text-sm shadow">1</span>
+              <div>
+                <h2 class="text-lg sm:text-xl font-bold text-amber-300">Pilih Destinasi Pendakian</h2>
+                <p class="text-xs text-stone-400">Klik destinasi yang ingin Anda ikuti</p>
+              </div>
+            </div>
+            <span id="dest-count-badge" class="text-xs px-2.5 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-700/40 font-semibold">6 Rute</span>
+          </div>
+
+          <div id="destination-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+        </section>
+
+        <!-- STEP 2: PILIH PAKET & JUMLAH PESERTA -->
+        <section class="bg-borneo-card rounded-2xl p-5 sm:p-7 border border-white/10 shadow-xl">
+          <div class="flex items-center gap-3 mb-5">
+            <span class="w-8 h-8 rounded-xl gold-gradient text-stone-950 font-extrabold flex items-center justify-center text-sm shadow">2</span>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-amber-300">Pilih Paket &amp; Jumlah Peserta</h2>
+              <p class="text-xs text-stone-400">Fasilitas &amp; harga otomatis mengikuti destinasi terpilih</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <!-- Paket A -->
+            <label id="card-paket-A" class="cursor-pointer rounded-2xl border-2 border-white/10 bg-borneo-dark/80 p-4 sm:p-5 transition-all hover:border-amber-400/50 relative flex flex-col justify-between card-selected">
+              <input type="radio" name="package_type" value="A" checked class="sr-only" />
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-bold tracking-wide">PAKET A • REGULER</span>
+                  <i id="check-paket-A" class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+                </div>
+                <div id="price-paket-A" class="text-2xl font-extrabold text-amber-400 mt-1">Rp 133.000 <span class="text-xs font-normal text-stone-400">/orang</span></div>
+                <ul id="facilities-paket-A" class="mt-3 space-y-1.5 text-xs text-stone-300"></ul>
+              </div>
+            </label>
+
+            <!-- Paket B -->
+            <label id="card-paket-B" class="cursor-pointer rounded-2xl border-2 border-white/10 bg-borneo-dark/80 p-4 sm:p-5 transition-all hover:border-amber-400/50 relative flex flex-col justify-between">
+              <input type="radio" name="package_type" value="B" class="sr-only" />
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-[#c85a32]/30 text-orange-200 border border-[#c85a32]/50 text-xs font-bold tracking-wide">PAKET B • FULL SERVICE</span>
+                  <i id="check-paket-B" class="fa-regular fa-circle text-stone-500 text-lg"></i>
+                </div>
+                <div id="price-paket-B" class="text-2xl font-extrabold text-amber-400 mt-1">Rp 155.000 <span class="text-xs font-normal text-stone-400">/orang</span></div>
+                <ul id="facilities-paket-B" class="mt-3 space-y-1.5 text-xs text-stone-300"></ul>
+              </div>
+            </label>
+          </div>
+
+          <!-- Jumlah Peserta Stepper -->
+          <div class="p-4 rounded-xl bg-borneo-dark/80 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="font-semibold text-sm text-stone-100">Jumlah Peserta Pendakian</div>
+              <div class="text-xs text-stone-400">Daftar solo maupun rombongan (1 - 50 orang)</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button type="button" id="btn-qty-minus" aria-label="Kurangi peserta" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-amber-400/20 border border-white/10 text-amber-300 font-bold flex items-center justify-center transition active:scale-95">
+                <i class="fa-solid fa-minus text-xs"></i>
+              </button>
+              <input type="number" id="participant-qty" value="1" min="1" max="50" readonly class="w-16 text-center bg-transparent font-mono font-extrabold text-xl text-amber-300 focus:outline-none" />
+              <button type="button" id="btn-qty-plus" aria-label="Tambah peserta" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-amber-400/20 border border-white/10 text-amber-300 font-bold flex items-center justify-center transition active:scale-95">
+                <i class="fa-solid fa-plus text-xs"></i>
+              </button>
+              <span class="text-xs text-stone-400 ml-1">Orang</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: DATA DIRI PESERTA -->
+        <section class="bg-borneo-card rounded-2xl p-5 sm:p-7 border border-white/10 shadow-xl">
+          <div class="flex items-center gap-3 mb-5">
+            <span class="w-8 h-8 rounded-xl gold-gradient text-stone-950 font-extrabold flex items-center justify-center text-sm shadow">3</span>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-amber-300">Data Peserta Pendakian</h2>
+              <p class="text-xs text-stone-400">Dilindungi sanitasi input XSS ketat &amp; validasi nomor aktif</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="full-name" class="block text-xs font-semibold text-stone-300 mb-1.5">Nama Lengkap (Ketua / Peserta) <span class="text-rose-400">*</span></label>
+              <input type="text" id="full-name" maxlength="80" required placeholder="Contoh: Muhammad Rizky" class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div>
+              <label for="wa-number" class="block text-xs font-semibold text-stone-300 mb-1.5">Nomor WhatsApp Aktif <span class="text-rose-400">*</span></label>
+              <input type="tel" id="wa-number" maxlength="18" required placeholder="Contoh: 081251234567" class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm font-mono text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div>
+              <label for="emergency-contact" class="block text-xs font-semibold text-stone-300 mb-1.5">Kontak Darurat (Nama &amp; No. HP) <span class="text-rose-400">*</span></label>
+              <input type="text" id="emergency-contact" maxlength="80" required placeholder="Contoh: Ibu Siti - 081348001122" class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div>
+              <label for="departure-date" class="block text-xs font-semibold text-stone-300 mb-1.5">Tanggal Keberangkatan <span class="text-rose-400">*</span></label>
+              <input type="date" id="departure-date" required class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100 focus:outline-none focus:border-amber-400 transition [color-scheme:dark]" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="address" class="block text-xs font-semibold text-stone-300 mb-1.5">Alamat / Domisili Saat Ini <span class="text-rose-400">*</span></label>
+              <input type="text" id="address" maxlength="150" required placeholder="Contoh: Jl. A. Yani Km 5, Banjarmasin / Banjarbaru" class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition" />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="medical-notes" class="block text-xs font-semibold text-stone-300 mb-1.5">Riwayat Penyakit / Daftar Nama Anggota Grup (Opsional)</label>
+              <textarea id="medical-notes" rows="2" maxlength="300" placeholder="Tuliskan jika ada alergi, asma, atau daftar nama anggota rombongan..." class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4: METODE PEMBAYARAN -->
+        <section class="bg-borneo-card rounded-2xl p-5 sm:p-7 border border-white/10 shadow-xl">
+          <div class="flex items-center gap-3 mb-5">
+            <span class="w-8 h-8 rounded-xl gold-gradient text-stone-950 font-extrabold flex items-center justify-center text-sm shadow">4</span>
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-amber-300">Pembayaran Trip</h2>
+              <p class="text-xs text-stone-400">Pilih skema pembayaran dan tujuan transfer resmi</p>
+            </div>
+          </div>
+
+          <!-- Skema Pembayaran: Lunas vs DP -->
+          <div id="scheme-selector-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <label id="scheme-full" class="cursor-pointer rounded-xl border-2 border-amber-400 bg-amber-400/10 p-3.5 flex items-center justify-between transition">
+              <input type="radio" name="payment_scheme" value="FULL" checked class="sr-only" />
+              <div>
+                <div class="text-xs font-bold text-amber-300 uppercase">Bayar Lunas (100%)</div>
+                <div class="text-[11px] text-stone-300 mt-0.5">Langsung lunas tanpa sisa tagihan</div>
+              </div>
+              <i class="fa-solid fa-circle-check text-amber-400"></i>
+            </label>
+
+            <label id="scheme-dp" class="cursor-pointer rounded-xl border-2 border-white/10 bg-borneo-dark/80 p-3.5 flex items-center justify-between transition hover:border-amber-400/40">
+              <input type="radio" name="payment_scheme" value="DP" class="sr-only" />
+              <div>
+                <div id="dp-label-title" class="text-xs font-bold text-stone-200 uppercase">Down Payment (DP 50%)</div>
+                <div class="text-[11px] text-stone-400 mt-0.5">Pelunasan H-2 sebelum berangkat</div>
+              </div>
+              <i class="fa-regular fa-circle text-stone-500"></i>
+            </label>
+          </div>
+
+          <!-- Tab Metode Pembayaran -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button type="button" data-pay-tab="bank" class="pay-tab-btn active px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-400 text-stone-950 transition flex items-center gap-2">
+              <i class="fa-solid fa-building-columns"></i> Transfer Bank
+            </button>
+            <button type="button" data-pay-tab="ewallet" class="pay-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-dark text-stone-300 border border-white/10 hover:border-amber-400/40 transition flex items-center gap-2">
+              <i class="fa-solid fa-wallet"></i> E-Wallet
+            </button>
+            <button type="button" data-pay-tab="qris" class="pay-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-dark text-stone-300 border border-white/10 hover:border-amber-400/40 transition flex items-center gap-2">
+              <i class="fa-solid fa-qrcode"></i> QRIS All Payment
+            </button>
+          </div>
+
+          <!-- Panel Bank (Dinamis dari Konfigurasi Admin) -->
+          <div id="panel-bank" class="pay-panel space-y-3"></div>
+
+          <!-- Panel E-Wallet (Dinamis dari Konfigurasi Admin) -->
+          <div id="panel-ewallet" class="pay-panel hidden space-y-3"></div>
+
+          <!-- Panel QRIS (Dinamis dari Konfigurasi Admin) -->
+          <div id="panel-qris" class="pay-panel hidden">
+            <div class="p-5 rounded-xl bg-borneo-dark border border-white/10 flex flex-col sm:flex-row items-center gap-5">
+              <div id="qris-visual-container" class="bg-white p-3 rounded-2xl shrink-0 shadow-lg flex items-center justify-center w-40 h-40"></div>
+              <div class="text-center sm:text-left">
+                <div class="inline-block px-2.5 py-0.5 rounded bg-[#c85a32]/30 text-orange-200 text-[11px] font-bold mb-1">QRIS NATIONAL STANDARD</div>
+                <h4 id="qris-merchant-name" class="font-bold text-base text-stone-100">BAHIMPU OUTDOOR KALSEL</h4>
+                <p id="qris-nmid-text" class="text-xs font-mono text-stone-400 mt-1">NMID: ID1020260088991</p>
+                <p class="text-xs text-stone-400 mt-1">Scan menggunakan m-Banking atau E-Wallet apapun (DANA, GoPay, OVO, ShopeePay, LinkAja).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Bukti Transfer dengan Validasi Magic-Byte -->
+          <div class="mt-6 pt-5 border-t border-white/10">
+            <label class="block text-xs font-semibold text-stone-300 mb-2">
+              Upload Bukti Pembayaran / Struk Transfer <span class="text-rose-400">*</span>
+            </label>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <label for="payment-proof" class="cursor-pointer w-full sm:w-auto px-4 py-3 rounded-xl border border-dashed border-amber-400/60 bg-amber-400/5 hover:bg-amber-400/15 text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-cloud-arrow-up text-base"></i>
+                <span id="file-label-text">Pilih Bukti Transfer (JPG, PNG, WEBP, PDF)</span>
+                <input type="file" id="payment-proof" accept="image/jpeg,image/png,image/webp,application/pdf" class="sr-only" />
+              </label>
+              <span class="text-[11px] text-stone-400">Validasi Signature File Aktif • Maks 5MB</span>
+            </div>
+
+            <div id="proof-preview-box" class="hidden mt-4 p-3 rounded-xl bg-borneo-dark border border-emerald-500/40 flex items-center gap-4">
+              <img id="proof-preview-img" src="" alt="Preview Bukti" class="w-16 h-16 object-cover rounded-lg border border-white/10 bg-stone-900" />
+              <div class="flex-1 min-w-0">
+                <div id="proof-file-name" class="text-xs font-semibold text-emerald-300 truncate">bukti.jpg</div>
+                <div class="text-[11px] text-stone-400 mt-0.5"><i class="fa-solid fa-check-double text-emerald-400 mr-1"></i>Signature file terverifikasi aman</div>
+              </div>
+              <button type="button" id="btn-remove-proof" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-xs font-semibold">
+                Hapus
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- KOLOM KANAN (4 Kolom): Sticky Ringkasan Trip -->
+      <aside class="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
+        <div class="bg-borneo-card rounded-2xl p-5 sm:p-6 border border-amber-400/30 shadow-2xl">
+          <div class="flex items-center justify-between pb-4 border-b border-white/10">
+            <h3 class="font-display font-bold text-lg text-amber-400 tracking-wide">RINGKASAN TRIP</h3>
+            <span id="summary-badge-brand" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300">BAHIMPU</span>
+          </div>
+
+          <div class="py-4 space-y-3 text-sm border-b border-white/10">
+            <div>
+              <div class="text-[11px] uppercase tracking-wider text-stone-400">Destinasi Pilihan</div>
+              <div id="summary-dest" class="font-bold text-stone-100 mt-0.5">-</div>
+              <div id="summary-mdpl" class="text-xs text-amber-400/90">-</div>
+            </div>
+
+            <div class="flex justify-between items-center pt-1">
+              <span class="text-stone-400 text-xs">Jenis Paket</span>
+              <span id="summary-pkg" class="font-semibold text-stone-100 text-xs bg-white/10 px-2.5 py-1 rounded-lg">Paket A</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-stone-400 text-xs">Harga per Orang</span>
+              <span id="summary-unit-price" class="font-mono font-semibold text-stone-200">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-stone-400 text-xs">Jumlah Peserta</span>
+              <span id="summary-qty" class="font-semibold text-stone-200">1 Orang</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-stone-400 text-xs">Skema Pembayaran</span>
+              <span id="summary-scheme" class="font-semibold text-emerald-300 text-xs">Lunas (100%)</span>
+            </div>
+          </div>
+
+          <div class="py-4 space-y-2">
+            <div class="flex justify-between items-center text-xs text-stone-400">
+              <span>Subtotal Paket</span>
+              <span id="summary-subtotal" class="font-mono">Rp 0</span>
+            </div>
+            <div id="dp-remaining-row" class="hidden flex justify-between items-center text-xs text-stone-400">
+              <span>Sisa Pelunasan (H-2)</span>
+              <span id="summary-remaining" class="font-mono">Rp 0</span>
+            </div>
+            <div class="pt-2 flex justify-between items-end">
+              <div>
+                <div class="text-xs text-stone-300 font-semibold">Total Wajib Transfer</div>
+                <div class="text-[11px] text-stone-400">Sesuai skema dipilih</div>
+              </div>
+              <div id="summary-total-pay" class="font-mono text-2xl font-extrabold text-amber-400">Rp 0</div>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-submit-trip" class="w-full py-3.5 px-5 rounded-xl gold-gradient text-stone-950 font-extrabold text-sm tracking-wide shadow-lg hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-ticket"></i>
+            <span>KONFIRMASI &amp; DAFTAR TRIP</span>
+          </button>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-12 border-t border-white/10 bg-[#091710] py-6 px-4 text-center">
+    <p id="footer-brand-line" class="font-display font-bold text-amber-400 tracking-wider text-sm">BAHIMPU — ESTD 2026</p>
+    <p id="footer-tagline-line" class="text-xs text-stone-400 mt-1">“BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI” • Kalimantan Selatan, Indonesia</p>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: E-TICKET / INVOICE PESERTA                                   -->
+  <!-- ===================================================================== -->
+  <div id="receipt-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="receipt-printable" class="bg-borneo-card border-2 border-amber-400/50 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl my-auto">
+      <div class="gold-gradient px-6 py-5 text-stone-950 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Mini Logo pada E-Ticket (Otomatis Sinkron dengan Logo Kustom / Default) -->
+          <div id="ticket-logo-box" class="w-12 h-12 rounded-full bg-stone-950/15 border border-stone-950/30 flex items-center justify-center overflow-hidden shrink-0">
+            <img id="ticket-custom-logo" src="" alt="Logo Tiket" class="hidden w-full h-full object-cover" />
+            <i id="ticket-default-icon" class="fa-solid fa-mountain-sun text-stone-950 text-xl"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[10px] font-extrabold uppercase tracking-widest opacity-80">E-TICKET PENDAFTARAN RESMI</div>
+            <h3 id="ticket-brand-name" class="font-display font-black text-xl sm:text-2xl tracking-wide truncate">BAHIMPU</h3>
+            <p id="ticket-tagline" class="text-[10px] font-bold truncate">“BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI”</p>
+            <p id="ticket-under-subtext" class="text-[9px] font-semibold opacity-80 truncate">Pendaftaran Resmi Pendakian Pegunungan Meratus • Kalsel</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] font-bold uppercase">Kode Booking</div>
+          <div id="ticket-booking-id" class="font-mono font-black text-sm sm:text-base bg-stone-950 text-amber-400 px-2.5 py-1 rounded-lg mt-0.5">BHMP-0000</div>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-4 text-sm">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+          <span><i class="fa-solid fa-circle-check mr-1.5"></i> Pendaftaran &amp; Bukti Bayar Tercatat</span>
+          <span id="ticket-scheme-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 uppercase">LUNAS</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs border-b border-white/10 pb-4">
+          <div>
+            <span class="text-stone-400 block">Nama Peserta</span>
+            <span id="ticket-name" class="font-bold text-stone-100 text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">WhatsApp</span>
+            <span id="ticket-wa" class="font-mono font-bold text-stone-100 text-sm">-</span>
+          </div>
+          <div class="col-span-2">
+            <span class="text-stone-400 block">Destinasi &amp; Paket</span>
+            <span id="ticket-dest" class="font-bold text-amber-300 text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">Tanggal Berangkat</span>
+            <span id="ticket-date" class="font-semibold text-stone-100">-</span>
+          </div>
+          <div>
+            <span class="text-stone-400 block">Jumlah Peserta</span>
+            <span id="ticket-qty" class="font-semibold text-stone-100">-</span>
+          </div>
+          <div class="col-span-2">
+            <span class="text-stone-400 block">Kontak Darurat</span>
+            <span id="ticket-emergency" class="font-semibold text-stone-200">-</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <span class="text-xs text-stone-400 block">Total Dibayarkan</span>
+            <span id="ticket-method" class="text-[11px] text-stone-400">via Transfer Bank</span>
+          </div>
+          <span id="ticket-total" class="font-mono text-2xl font-extrabold text-amber-400">Rp 0</span>
+        </div>
+
+        <div class="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button type="button" id="btn-send-wa" class="sm:col-span-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
+            <i class="fa-brands fa-whatsapp text-base"></i> Kirim ke WA Admin
+          </button>
+          <button type="button" onclick="window.print()" class="py-3 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-stone-100 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-print"></i> Cetak
+          </button>
+        </div>
+
+        <button type="button" id="btn-close-modal" class="w-full py-2.5 rounded-xl border border-white/10 text-stone-400 hover:text-white text-xs font-semibold transition">
+          Tutup Jendela
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: LOGIN ADMIN (SHA-256 + BRUTE FORCE LOCKOUT)                  -->
+  <!-- ===================================================================== -->
+  <div id="admin-login-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-borneo-card border border-amber-400/40 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl gold-gradient text-stone-950 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-lg text-amber-300">Akses Pengelola</h3>
+            <p class="text-[11px] text-stone-400">Otentikasi Web Crypto SHA-256 + Salt</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-login" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-rose-500/20 text-stone-300 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="default-pin-hint" class="p-3 rounded-xl bg-amber-400/10 border border-amber-400/30 text-xs text-amber-200 mb-4">
+        <i class="fa-solid fa-key mr-1.5 text-amber-400"></i>
+        PIN Default Awal: <strong class="font-mono text-amber-300">202600</strong> (Segera ganti PIN di tab Keamanan setelah masuk).
+      </div>
+
+      <div id="lockout-banner" class="hidden p-3 rounded-xl bg-rose-900/70 border border-rose-500 text-xs text-rose-200 mb-4 font-semibold">
+        <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+        Terlalu banyak percobaan gagal. Terkunci selama <span id="lockout-timer" class="font-mono font-bold">60</span> detik.
+      </div>
+
+      <form id="admin-login-form" class="space-y-4">
+        <div>
+          <label for="admin-pin-input" class="block text-xs font-semibold text-stone-300 mb-1.5">Masukkan PIN Pengelola</label>
+          <input type="password" id="admin-pin-input" inputmode="numeric" maxlength="20" required placeholder="••••••" class="w-full px-4 py-3 rounded-xl bg-borneo-dark border border-white/15 font-mono text-center text-lg tracking-[0.35em] text-amber-300 focus:outline-none focus:border-amber-400" />
+        </div>
+        <button type="submit" id="btn-submit-login" class="w-full py-3 rounded-xl gold-gradient text-stone-950 font-extrabold text-xs tracking-wider uppercase shadow-lg hover:brightness-110 transition">
+          Buka Dashboard Pengelola
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 3: DASHBOARD ADMIN / CMS PENUH                                  -->
+  <!-- ===================================================================== -->
+  <div id="admin-dashboard-modal" class="fixed inset-0 z-50 hidden bg-[#09150e]/95 backdrop-blur-md overflow-y-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 min-h-screen flex flex-col">
+      
+      <!-- Top Header Admin CMS -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-amber-400/25">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl gold-gradient text-stone-950 flex items-center justify-center text-lg font-black shadow">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-display font-black text-xl sm:text-2xl text-amber-400">PANEL KONTROL PENGELOLA</h2>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold">SESI TERENKRIPSI</span>
+            </div>
+            <p class="text-xs text-stone-400">Ubah seluruh identitas, destinasi, harga, rekening, &amp; kelola pendaftar • Auto-logout 15 menit idle</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button type="button" id="btn-admin-logout" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-200 text-xs font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-right-from-bracket"></i> Kunci &amp; Keluar
+          </button>
+          <button type="button" id="btn-close-dashboard" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-stone-100 text-xs font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-eye"></i> Lihat Website
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigasi Tab CMS -->
+      <div class="flex flex-wrap gap-2 py-4 border-b border-white/10">
+        <button type="button" data-cms-tab="brand" class="cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-400 text-stone-950 flex items-center gap-2">
+          <i class="fa-solid fa-palette"></i> 1. Identitas &amp; Tema
+        </button>
+        <button type="button" data-cms-tab="trips" class="cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-card text-stone-300 border border-white/10 flex items-center gap-2">
+          <i class="fa-solid fa-mountain"></i> 2. Destinasi &amp; Paket
+        </button>
+        <button type="button" data-cms-tab="payments" class="cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-card text-stone-300 border border-white/10 flex items-center gap-2">
+          <i class="fa-solid fa-credit-card"></i> 3. Rekening &amp; Payment
+        </button>
+        <button type="button" data-cms-tab="bookings" class="cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-card text-stone-300 border border-white/10 flex items-center gap-2">
+          <i class="fa-solid fa-users"></i> 4. Data Pendaftar (<span id="cms-booking-count">0</span>)
+        </button>
+        <button type="button" data-cms-tab="security" class="cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-card text-stone-300 border border-white/10 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved"></i> 5. Keamanan &amp; Backup
+        </button>
+      </div>
+
+      <!-- KONTEN TAB CMS -->
+      <div class="py-6 flex-1 space-y-6">
+
+        <!-- TAB 1: IDENTITAS & TAMPILAN BRAND -->
+        <div id="cms-panel-brand" class="cms-panel bg-borneo-card rounded-2xl p-6 border border-white/10 space-y-6">
+          <h3 class="font-bold text-base text-amber-300 border-b border-white/10 pb-3">Pengaturan Logo, Teks Bawah Logo, Identitas &amp; Tema</h3>
+
+          <!-- Sub-bagian Khusus: Kustomisasi Logo & Teks di Bawah Logo -->
+          <div class="p-4 sm:p-5 rounded-2xl bg-borneo-dark/90 border border-amber-400/25 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div>
+                <h4 class="font-bold text-sm text-amber-300 flex items-center gap-2">
+                  <i class="fa-solid fa-image"></i> Pengaturan Logo &amp; Teks di Bawah Logo
+                </h4>
+                <p class="text-[11px] text-stone-400">Unggah logo PNG, JPG, WEBP, atau SVG aman (otomatis terkompresi &amp; tersanitasi XSS)</p>
+              </div>
+              <button type="button" id="btn-reset-default-logo" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-stone-950 text-amber-300 text-xs font-bold transition self-start sm:self-center">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Kembalikan Logo Default BAHIMPU
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              <!-- Live Preview Logo & Teks Bawah Logo di Panel Admin -->
+              <div class="lg:col-span-4 p-4 rounded-2xl bg-[#091710] border border-white/10 flex flex-col items-center text-center">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-3">Live Preview Header</span>
+                <div id="cms-logo-preview-frame" class="w-28 h-28 flex items-center justify-center overflow-hidden rounded-full border-2 border-amber-400/60 bg-borneo-card">
+                  <img id="cms-logo-preview-img" src="" alt="Preview Logo" class="hidden w-full h-full object-cover" />
+                  <div id="cms-logo-preview-default" class="text-center p-2">
+                    <i class="fa-solid fa-shield-halved text-amber-400 text-3xl"></i>
+                    <div class="text-[10px] font-display font-bold text-amber-300 mt-1">Emblem Default</div>
+                  </div>
+                </div>
+                <div id="cms-preview-under-title" class="font-display font-bold text-xs text-amber-300 mt-2.5 leading-tight">BAHIMPU — Open Trip &amp; Adventure Kalsel</div>
+                <div id="cms-preview-under-tagline" class="text-[10px] font-bold text-amber-100/90 uppercase mt-0.5">BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI</div>
+                <div id="cms-preview-under-subtext" class="text-[10px] text-stone-400 mt-0.5 leading-snug">Pendaftaran Resmi Pendakian Pegunungan Meratus • Kalimantan Selatan</div>
+              </div>
+
+              <!-- Kontrol Upload, Bingkai, Ukuran & Teks Bawah Logo -->
+              <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-stone-300 mb-1.5">Unggah File Logo Kustom (PNG, JPG, WEBP, SVG)</label>
+                  <label for="cms-logo-upload" class="cursor-pointer w-full px-4 py-3 rounded-xl border border-dashed border-amber-400/60 bg-amber-400/5 hover:bg-amber-400/15 text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-cloud-arrow-up text-base"></i>
+                    <span id="cms-logo-upload-label">Pilih File Logo Baru (Maks 5MB • Otomatis Validasi &amp; Resize)</span>
+                    <input type="file" id="cms-logo-upload" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="sr-only" />
+                  </label>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">Gaya Bingkai Logo</label>
+                  <select id="cms-logo-frame" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100">
+                    <option value="circle">Lingkaran (Circle)</option>
+                    <option value="rounded">Kotak Membulat (Rounded)</option>
+                    <option value="noframe">Tanpa Bingkai / Transparan (No Frame)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">Ukuran Tampilan Logo</label>
+                  <select id="cms-logo-size" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100">
+                    <option value="small">Kecil (96px)</option>
+                    <option value="medium" selected>Sedang (128px • Standar)</option>
+                    <option value="large">Besar (160px)</option>
+                  </select>
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">a) Judul Utama di Bawah Logo</label>
+                  <input type="text" id="cms-under-logo-title" maxlength="80" placeholder="Contoh: BAHIMPU — Open Trip & Adventure Kalsel" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100" />
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">b) Tagline / Motto di Bawah Logo</label>
+                  <input type="text" id="cms-under-logo-tagline" maxlength="100" placeholder="Contoh: BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100" />
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">c) Sub-teks / Keterangan Tambahan di Bawah Logo</label>
+                  <input type="text" id="cms-under-logo-subtext" maxlength="140" placeholder="Contoh: Pendaftaran Resmi Pendakian Pegunungan Meratus • Kalimantan Selatan" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100" />
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">d) Tampilkan Badge Tahun Berdiri (ESTD 2026)?</label>
+                  <select id="cms-show-estd" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-card border border-white/15 text-sm text-stone-100">
+                    <option value="true">Tampilkan Badge Tahun Berdiri</option>
+                    <option value="false">Sembunyikan Badge Tahun Berdiri</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-bagian Identitas Umum & Tema -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Nama Organizer / Komunitas (Heading Utama)</label>
+              <input type="text" id="cms-brand-name" maxlength="40" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Teks Badge Tahun Berdiri</label>
+              <input type="text" id="cms-brand-estd" maxlength="25" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Tagline Utama Heading</label>
+              <input type="text" id="cms-brand-tagline" maxlength="100" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Nomor WhatsApp Admin (Format: 628xxx)</label>
+              <input type="text" id="cms-admin-wa" maxlength="18" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-sm text-stone-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Warna Aksen Emas Utama</label>
+              <div class="flex items-center gap-3">
+                <input type="color" id="cms-theme-gold" class="h-10 w-16 rounded bg-transparent border border-white/20 cursor-pointer" />
+                <button type="button" onclick="document.getElementById('cms-theme-gold').value='#d4af37'" class="text-xs px-2.5 py-1.5 rounded bg-white/10 text-stone-300">Reset Emas</button>
+              </div>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Banner Pengumuman Atas</label>
+              <input type="text" id="cms-announcement" maxlength="160" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-stone-300 mb-1">Deskripsi Singkat Hero</label>
+              <textarea id="cms-brand-desc" rows="2" maxlength="250" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100"></textarea>
+            </div>
+          </div>
+          <div class="pt-2">
+            <button type="button" id="btn-save-brand" class="px-5 py-3 rounded-xl gold-gradient text-stone-950 font-extrabold text-xs shadow">
+              <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan Logo &amp; Identitas
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 2: KELOLA DESTINASI & PAKET HARGA -->
+        <div id="cms-panel-trips" class="cms-panel hidden space-y-5">
+          <div class="bg-borneo-card rounded-2xl p-6 border border-white/10">
+            <h3 id="trip-editor-title" class="font-bold text-base text-amber-300 mb-4">Tambah / Edit Destinasi Trip</h3>
+            <input type="hidden" id="edit-trip-id" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Nama Gunung / Rute Trip *</label>
+                <input type="text" id="trip-name-input" placeholder="Contoh: Gunung Kahung Raya" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Ketinggian (MDPL) / Subjudul *</label>
+                <input type="text" id="trip-elev-input" placeholder="Contoh: 1456 MDPL • Aranio" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Status Kuota</label>
+                <select id="trip-status-input" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100">
+                  <option value="Buka">Buka (Tersedia)</option>
+                  <option value="Segera">Segera Dibuka</option>
+                  <option value="Penuh">Kuota Penuh</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Harga Paket A (Rp) *</label>
+                <input type="number" id="trip-price-a-input" min="0" placeholder="133000" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Harga Paket B (Rp) *</label>
+                <input type="number" id="trip-price-b-input" min="0" placeholder="155000" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Label Badge</label>
+                <input type="text" id="trip-tag-input" placeholder="Favorit / Ekspedisi" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+              </div>
+              <div class="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">Fasilitas Paket A (Pisahkan dengan koma)</label>
+                  <input type="text" id="trip-fac-a-input" placeholder="Simaksi, Guide Lokal, P3K, Stiker BAHIMPU" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-xs text-stone-100" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-stone-300 mb-1">Fasilitas Paket B (Pisahkan dengan koma)</label>
+                  <input type="text" id="trip-fac-b-input" placeholder="Semua Paket A, Tenda Kelompok, Makan, Porter Tim" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-xs text-stone-100" />
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button type="button" id="btn-save-trip" class="px-5 py-2.5 rounded-xl gold-gradient text-stone-950 font-extrabold text-xs">
+                <i class="fa-solid fa-plus mr-1"></i> Simpan Destinasi
+              </button>
+              <button type="button" id="btn-cancel-trip-edit" class="hidden px-4 py-2.5 rounded-xl bg-white/10 text-stone-300 text-xs font-semibold">
+                Batal Edit
+              </button>
+            </div>
+          </div>
+
+          <!-- Daftar Destinasi Aktif -->
+          <div id="cms-trips-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+        </div>
+
+        <!-- TAB 3: KELOLA REKENING & METODE PEMBAYARAN -->
+        <div id="cms-panel-payments" class="cms-panel hidden space-y-5">
+          <div class="bg-borneo-card rounded-2xl p-6 border border-white/10 space-y-5">
+            <h3 class="font-bold text-base text-amber-300 border-b border-white/10 pb-3">Pengaturan DP, E-Wallet &amp; QRIS</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Izinkan Pembayaran DP?</label>
+                <select id="cms-dp-enabled" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100">
+                  <option value="true">Aktif (Bisa DP)</option>
+                  <option value="false">Nonaktif (Wajib Lunas)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Persentase DP (%)</label>
+                <input type="number" id="cms-dp-percent" min="10" max="90" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Nomor E-Wallet (DANA/GoPay/OVO)</label>
+                <input type="text" id="cms-ewallet-number" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Nama Pemilik E-Wallet</label>
+                <input type="text" id="cms-ewallet-holder" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Nama Merchant QRIS</label>
+                <input type="text" id="cms-qris-merchant" class="w-full px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-sm text-stone-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone-300 mb-1">Upload Gambar QRIS Custom (Opsional)</label>
+                <input type="file" id="cms-qris-upload" accept="image/png,image/jpeg,image/webp" class="w-full text-xs text-stone-300 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-amber-400 file:text-stone-950 file:font-bold" />
+              </div>
+            </div>
+            <button type="button" id="btn-save-payment-settings" class="px-5 py-2.5 rounded-xl gold-gradient text-stone-950 font-extrabold text-xs">
+              Simpan Pengaturan Pembayaran
+            </button>
+          </div>
+
+          <!-- Kelola Daftar Rekening Bank -->
+          <div class="bg-borneo-card rounded-2xl p-6 border border-white/10 space-y-4">
+            <h3 class="font-bold text-base text-amber-300">Daftar Rekening Bank</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <input type="text" id="new-bank-name" placeholder="Nama Bank (cth: Bank Kalsel)" class="px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-xs text-stone-100" />
+              <input type="text" id="new-bank-number" placeholder="Nomor Rekening" class="px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-xs text-stone-100" />
+              <input type="text" id="new-bank-holder" placeholder="Atas Nama" class="px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 text-xs text-stone-100" />
+              <button type="button" id="btn-add-bank" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+                + Tambah Rekening
+              </button>
+            </div>
+            <div id="cms-bank-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- TAB 4: DATA PENDAFTAR MASUK -->
+        <div id="cms-panel-bookings" class="cms-panel hidden bg-borneo-card rounded-2xl p-6 border border-white/10 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-base text-amber-300">Manajemen Pendaftar Masuk</h3>
+              <p class="text-xs text-stone-400">Verifikasi pembayaran peserta atau ekspor data ke CSV</p>
+            </div>
+            <button type="button" id="btn-export-csv" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv"></i> Ekspor CSV
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-white/15 text-amber-300 uppercase">
+                  <th class="py-3 px-3">Kode</th>
+                  <th class="py-3 px-3">Peserta &amp; WA</th>
+                  <th class="py-3 px-3">Destinasi &amp; Paket</th>
+                  <th class="py-3 px-3">Tgl Berangkat</th>
+                  <th class="py-3 px-3">Bayar</th>
+                  <th class="py-3 px-3">Status</th>
+                  <th class="py-3 px-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="cms-bookings-tbody" class="divide-y divide-white/10"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 5: KEAMANAN & BACKUP KONFIGURASI -->
+        <div id="cms-panel-security" class="cms-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Checklist Keamanan -->
+          <div class="bg-borneo-card rounded-2xl p-6 border border-emerald-500/30 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-base text-emerald-300">Status Keamanan Website</h3>
+              <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold">TINGKAT TINGGI</span>
+            </div>
+            <ul class="space-y-2.5 text-xs text-stone-200">
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>SHA-256 Salted Authentication:</strong> PIN Pengelola tidak pernah disimpan sebagai teks biasa.</span></li>
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>Brute-Force Lockout &amp; Auto-Logout:</strong> Kunci otomatis 60 detik setelah 5x salah PIN &amp; sesi berakhir setelah 15 menit idle.</span></li>
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>Strict XSS Sanitization:</strong> Seluruh input teks dan rendering HTML disterilkan dengan entity-escaping.</span></li>
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>Content Security Policy (CSP):</strong> Mencegah injeksi skrip pihak ketiga yang tidak sah.</span></li>
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>Magic-Byte File Verification:</strong> Memeriksa header biner asli file bukti transfer (JPG/PNG/WEBP/PDF).</span></li>
+              <li class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span><strong>Anti-Spam Honeypot &amp; Rate Limiter:</strong> Jebakan bot tersembunyi + jeda pengiriman formulir.</span></li>
+            </ul>
+          </div>
+
+          <!-- Ganti PIN & Backup JSON -->
+          <div class="bg-borneo-card rounded-2xl p-6 border border-white/10 space-y-5">
+            <div>
+              <h3 class="font-bold text-base text-amber-300 mb-3">Ganti PIN Pengelola</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="password" id="new-admin-pin" inputmode="numeric" maxlength="20" placeholder="PIN Baru (min. 6 digit)" class="px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-xs text-stone-100" />
+                <input type="password" id="confirm-admin-pin" inputmode="numeric" maxlength="20" placeholder="Ulangi PIN Baru" class="px-3.5 py-2.5 rounded-xl bg-borneo-dark border border-white/15 font-mono text-xs text-stone-100" />
+              </div>
+              <button type="button" id="btn-change-pin" class="mt-3 px-4 py-2.5 rounded-xl gold-gradient text-stone-950 font-extrabold text-xs">
+                Perbarui PIN Terenkripsi
+              </button>
+            </div>
+
+            <div class="pt-4 border-t border-white/10">
+              <h3 class="font-bold text-base text-amber-300 mb-2">Backup &amp; Restore Konfigurasi (JSON)</h3>
+              <p class="text-xs text-stone-400 mb-3">Ekspor seluruh pengaturan trip &amp; pendaftar ke file JSON atau pulihkan di perangkat lain.</p>
+              <div class="flex flex-wrap gap-2.5">
+                <button type="button" id="btn-export-json" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 font-bold text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-download"></i> Ekspor Backup JSON
+                </button>
+                <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-300 font-bold text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-upload"></i> Impor Backup JSON
+                  <input type="file" id="input-import-json" accept="application/json" class="sr-only" />
+                </label>
+                <button type="button" id="btn-reset-default" class="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs">
+                  Reset Default
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT ENGINE & HIGH-SECURITY MODULE                              -->
+  <!-- ===================================================================== -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. KEAMANAN: SANITASI XSS & WEB CRYPTO SHA-256
+    // -------------------------------------------------------------------------
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function sha256Hex(message) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    // Validasi Signature Magic-Byte File Upload
+    async function verifyFileSignature(file, allowSvg = false) {
+      const maxBytes = 5 * 1024 * 1024;
+      if (file.size > maxBytes) return { ok: false, reason: 'Ukuran file maksimal 5MB.' };
+
+      const slice = file.slice(0, 12);
+      const buffer = await slice.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const isJpeg = hex.startsWith('ffd8ff');
+      const isPng = hex.startsWith('89504e470d0a1a0a');
+      const isWebp = hex.startsWith('52494646') && hex.slice(16, 24) === '57454250';
+      const isPdf = hex.startsWith('25504446');
+
+      if (isJpeg || isPng || isWebp || isPdf) {
+        return { ok: true, isPdf, isSvg: false };
+      }
+
+      if (allowSvg && (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg'))) {
+        const rawText = await file.text();
+        const trimmed = rawText.trim();
+        if (!trimmed.includes('<svg')) {
+          return { ok: false, reason: 'Struktur file SVG tidak valid.' };
+        }
+        // Sanitasi ketat SVG agar bebas dari <script>, <foreignObject>, javascript:, dan event handler on*
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(trimmed, 'image/svg+xml');
+        if (doc.querySelector('parsererror')) {
+          return { ok: false, reason: 'File SVG rusak atau gagal di-parse.' };
+        }
+        doc.querySelectorAll('script, foreignObject, iframe, object, embed').forEach(el => el.remove());
+        doc.querySelectorAll('*').forEach(el => {
+          Array.from(el.attributes).forEach(attr => {
+            const name = attr.name.toLowerCase();
+            const val = attr.value.trim().toLowerCase();
+            if (name.startsWith('on') || val.startsWith('javascript:') || val.startsWith('data:text/html')) {
+              el.removeAttribute(attr.name);
+            }
+          });
+        });
+        const cleanSvg = new XMLSerializer().serializeToString(doc.documentElement);
+        const svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(cleanSvg);
+        return { ok: true, isPdf: false, isSvg: true, sanitizedDataUrl: svgDataUrl };
+      }
+
+      return { ok: false, reason: allowSvg ? 'Format logo tidak valid! Gunakan PNG, JPG, WEBP, atau SVG asli.' : 'Format file tidak valid! Hanya izinkan JPG, PNG, WEBP, atau PDF asli.' };
+    }
+
+    // Kompresi & Resize Logo Kustom via Canvas agar hemat kapasitas localStorage
+    function resizeLogoImage(dataUrl, maxDim = 360) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/png', 0.9));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. DATA DEFAULT & STATE PERSISTENCE (LOCALSTORAGE)
+    // -------------------------------------------------------------------------
+    const STORAGE_KEY_CFG = 'bahimpu_cms_config_v3';
+    const STORAGE_KEY_BOOKINGS = 'bahimpu_bookings_v3';
+    const STORAGE_KEY_AUTH = 'bahimpu_admin_auth_v3';
+
+    const DEFAULT_CONFIG = {
+      brand: {
+        name: 'BAHIMPU',
+        estd: 'ESTD 2026',
+        tagline: 'BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI',
+        desc: 'Formulir pendaftaran resmi pendakian Pegunungan Meratus & Kalimantan Selatan. Pilih jalur impianmu, atur paket layanan, dan selesaikan pembayaran dalam satu langkah.',
+        announcement: 'Open Trip Meratus & Kalsel 2026 Dibuka! Kuota Terbatas — Daftar Sekarang.',
+        adminWa: '6281251992026',
+        themeGold: '#d4af37'
+      },
+      destinations: [
+        {
+          id: 'pindihan',
+          name: 'Gunung Pindihan, Sasarian, Pingganin',
+          elevation: 'Eksplorasi 3 Puncak • Kalsel',
+          tag: 'Favorit Pemula',
+          status: 'Buka',
+          priceA: 133000,
+          priceB: 155000,
+          facA: ['Simaksi / Tiket Masuk Jalur', 'Local Guide & Sweeper', 'P3K Kelompok & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda Kelompok & Alat Masak', 'Logistik Makan Pendakian', 'Porter Tim (Alat Camp)']
+        },
+        {
+          id: 'lintas-cincin',
+          name: 'Lintas Cincin Kalsel 5 Gunung',
+          elevation: 'Ekspedisi 5 Puncak Meratus',
+          tag: 'Ekspedisi Spesial',
+          status: 'Buka',
+          priceA: 222000,
+          priceB: 380000,
+          facA: ['Simaksi 5 Jalur Puncak', 'Guide & Sweeper Lintas', 'P3K Kelompok & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda & Alat Masak Tim', 'Logistik Makan Lengkap', 'Porter Tim Lintas Cincin']
+        },
+        {
+          id: 'kahung-raya',
+          name: 'Gunung Kahung Raya',
+          elevation: '1456 MDPL • Aranio, Banjar',
+          tag: 'Hutan Lumut',
+          status: 'Buka',
+          priceA: 289000,
+          priceB: 522000,
+          facA: ['Simaksi & Perizinan Kahung', 'Guide Lokal Berpengalaman', 'P3K Kelompok & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda Kelompok & Alat Masak', 'Logistik Makan Selama Trip', 'Porter Tim Kahung Raya']
+        },
+        {
+          id: 'haur-bunak',
+          name: 'Gunung Haur Bunak',
+          elevation: '1141 MDPL • Pegunungan Meratus',
+          tag: 'Jalur Klasik',
+          status: 'Buka',
+          priceA: 222000,
+          priceB: 300000,
+          facA: ['Simaksi Jalur Haur Bunak', 'Local Guide & Sweeper', 'P3K Kelompok & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda Kelompok & Alat Masak', 'Logistik Makan Pendakian', 'Porter Tim']
+        },
+        {
+          id: 'gunung-angin',
+          name: 'Gunung Angin',
+          elevation: '1019 MDPL • Kalimantan Selatan',
+          tag: 'Camp Santai',
+          status: 'Buka',
+          priceA: 110000,
+          priceB: 122000,
+          facA: ['Simaksi Jalur Gunung Angin', 'Local Guide & Sweeper', 'P3K & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda Kelompok & Alat Masak', 'Logistik Makan Bersama', 'Air Minum & Kopi Camp']
+        },
+        {
+          id: 'gunung-hauk',
+          name: 'Gunung Hauk',
+          elevation: '1325 MDPL • Balangan, Kalsel',
+          tag: 'Atap Balangan',
+          status: 'Buka',
+          priceA: 110000,
+          priceB: 140000,
+          facA: ['Simaksi & Adat Jalur Hauk', 'Local Guide & Sweeper', 'P3K Kelompok & Dokumentasi', 'Stiker Eksklusif BAHIMPU'],
+          facB: ['Semua Fasilitas Paket A', 'Tenda Kelompok & Alat Masak', 'Logistik Makan Selama Trip', 'Porter Tim']
+        }
+      ],
+      payments: {
+        dpEnabled: true,
+        dpPercent: 50,
+        banks: [
+          { id: 'bk1', bankName: 'BANK KALSEL', accountNumber: '001009876543', accountHolder: 'BAHIMPU ADVENTURE' },
+          { id: 'bk2', bankName: 'BCA', accountNumber: '7890451234', accountHolder: 'BAHIMPU ADVENTURE' },
+          { id: 'bk3', bankName: 'MANDIRI', accountNumber: '1490012398765', accountHolder: 'BAHIMPU ADVENTURE' }
+        ],
+        ewalletNumber: '081251992026',
+        ewalletHolder: 'Admin BAHIMPU',
+        qrisMerchant: 'BAHIMPU OUTDOOR KALSEL',
+        qrisCustomImage: ''
+      }
+    };
+
+    function cloneObj(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    let appConfig = loadConfig();
+    let bookingsList = loadBookings();
+
+    let uiState = {
+      selectedDestId: appConfig.destinations[0]?.id || 'pindihan',
+      packageType: 'A',
+      qty: 1,
+      paymentScheme: 'FULL',
+      paymentTab: 'bank',
+      proofDataUrl: null,
+      proofFileName: '',
+      lastSubmitTs: 0,
+      isAdminAuthenticated: false,
+      failedLoginAttempts: 0,
+      lockoutUntil: 0,
+      idleTimer: null
+    };
+
+    function loadConfig() {
+      try {
+        // Bersihkan cache versi lama yang mungkin korup
+        localStorage.removeItem('bahimpu_cms_config_v2');
+        const raw = localStorage.getItem(STORAGE_KEY_CFG);
+        if (!raw) {
+          const fresh = cloneObj(DEFAULT_CONFIG);
+          localStorage.setItem(STORAGE_KEY_CFG, JSON.stringify(fresh));
+          return fresh;
+        }
+        const parsed = JSON.parse(raw);
+        const validDestinations = Array.isArray(parsed.destinations) && parsed.destinations.length > 0
+          ? parsed.destinations.filter(d => d && d.id && d.name && !isNaN(Number(d.priceA)) && !isNaN(Number(d.priceB)))
+          : [];
+
+        return {
+          brand: { ...DEFAULT_CONFIG.brand, ...(parsed.brand || {}) },
+          destinations: validDestinations.length > 0 ? validDestinations : cloneObj(DEFAULT_CONFIG.destinations),
+          payments: {
+            ...DEFAULT_CONFIG.payments,
+            ...(parsed.payments || {}),
+            banks: Array.isArray(parsed.payments?.banks) && parsed.payments.banks.length > 0
+              ? parsed.payments.banks
+              : cloneObj(DEFAULT_CONFIG.payments.banks)
+          }
+        };
+      } catch {
+        return cloneObj(DEFAULT_CONFIG);
+      }
+    }
+
+    function saveConfig() {
+      try {
+        localStorage.setItem(STORAGE_KEY_CFG, JSON.stringify(appConfig));
+      } catch (err) {
+        showToast('Gagal menyimpan ke penyimpanan browser.', 'error');
+      }
+    }
+
+    function loadBookings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_BOOKINGS);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBookings() {
+      try {
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(bookingsList));
+      } catch (err) {
+        showToast('Gagal menyimpan data pendaftar.', 'error');
+      }
+    }
+
+    // Inisialisasi Auth SHA-256 (PIN Default: 202600)
+    async function ensureAuthInitialized() {
+      const existing = localStorage.getItem(STORAGE_KEY_AUTH);
+      if (!existing) {
+        const salt = 'BHMP_SALT_2026_KALSEL';
+        const hash = await sha256Hex(salt + '202600');
+        localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify({ salt, hash, isDefault: true }));
+      }
+    }
+
+    function formatRupiah(angka) {
+      return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgClass = type === 'error'
+        ? 'bg-rose-950/95 border-rose-500 text-rose-100'
+        : 'bg-emerald-950/95 border-amber-400 text-amber-100';
+      const icon = type === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-circle-check text-amber-400';
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold transition-all duration-300 ${bgClass}`;
+      toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${escapeHTML(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    function copyText(text, label) {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+        showToast(`${label} (${text}) berhasil disalin!`);
+      } catch {
+        showToast('Gagal menyalin teks.', 'error');
+      }
+      document.body.removeChild(temp);
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. RENDER TAMPILAN PUBLIK DARI KONFIGURASI DINAMIS
+    // -------------------------------------------------------------------------
+    function setTextSafe(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function renderPublicSite() {
+      const { brand, destinations, payments } = appConfig;
+
+      // Tema warna dinamis
+      document.documentElement.style.setProperty('--theme-gold', brand.themeGold || '#d4af37');
+
+      // Identitas Brand (Null-safe)
+      setTextSafe('announcement-text', brand.announcement);
+      setTextSafe('brand-title-display', brand.name);
+      setTextSafe('brand-estd-display', brand.estd);
+      setTextSafe('brand-tagline-display', `“${brand.tagline}”`);
+      setTextSafe('brand-desc-display', brand.desc);
+      setTextSafe('header-wa-display', brand.adminWa);
+      setTextSafe('summary-badge-brand', brand.name);
+      setTextSafe('footer-brand-line', `${brand.name} — ${brand.estd}`);
+      setTextSafe('footer-tagline-line', `“${brand.tagline}” • Kalimantan Selatan, Indonesia`);
+
+      // Pastikan destinasi terpilih valid
+      if (!destinations.some(d => d.id === uiState.selectedDestId) && destinations.length > 0) {
+        uiState.selectedDestId = destinations[0].id;
+      }
+
+      // Render Kartu Destinasi
+      setTextSafe('dest-count-badge', `${destinations.length} Rute`);
+      const grid = document.getElementById('destination-grid');
+      if (grid) {
+        grid.innerHTML = destinations.map(dest => {
+          const isSelected = dest.id === uiState.selectedDestId;
+          const isClosed = dest.status === 'Penuh';
+          const statusColor = dest.status === 'Penuh'
+            ? 'bg-rose-500/20 text-rose-300'
+            : dest.status === 'Segera'
+            ? 'bg-amber-500/20 text-amber-300'
+            : 'bg-emerald-500/20 text-emerald-300';
+
+          return `
+            <div data-dest-id="${escapeHTML(dest.id)}" data-closed="${isClosed ? '1' : '0'}"
+                 class="dest-card-item ${isClosed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-amber-400/50'} rounded-2xl p-4 border-2 transition-all flex flex-col justify-between ${
+                   isSelected && !isClosed
+                     ? 'border-amber-400 bg-amber-400/10 card-selected'
+                     : 'border-white/10 bg-borneo-dark/80'
+                 }">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${statusColor}">
+                    ${escapeHTML(dest.status)} • ${escapeHTML(dest.tag || 'Open Trip')}
+                  </span>
+                  <i class="${isSelected && !isClosed ? 'fa-solid fa-circle-check text-amber-400' : 'fa-regular fa-circle text-stone-500'}"></i>
+                </div>
+                <h3 class="font-bold text-sm sm:text-base text-stone-100 leading-snug">${escapeHTML(dest.name)}</h3>
+                <p class="text-xs text-stone-400 mt-0.5"><i class="fa-solid fa-mountain text-amber-400/80 mr-1"></i>${escapeHTML(dest.elevation)}</p>
+              </div>
+              <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-stone-400 block text-[10px]">Paket A</span>
+                  <span class="font-mono font-bold text-stone-200">${formatRupiah(dest.priceA)}</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-stone-400 block text-[10px]">Paket B</span>
+                  <span class="font-mono font-bold text-amber-400">${formatRupiah(dest.priceB)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Pasang event listener klik langsung pada kartu destinasi
+        grid.querySelectorAll('.dest-card-item').forEach(card => {
+          card.addEventListener('click', () => {
+            if (card.getAttribute('data-closed') === '1') {
+              showToast('Kuota destinasi ini sedang penuh.', 'error');
+              return;
+            }
+            selectDestination(card.getAttribute('data-dest-id'));
+          });
+        });
+      }
+
+      // Render Daftar Bank
+      const bankPanel = document.getElementById('panel-bank');
+      bankPanel.innerHTML = payments.banks.map(bk => `
+        <div class="p-4 rounded-xl bg-borneo-dark border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="px-3 h-10 rounded-lg bg-emerald-700/30 border border-emerald-500/40 flex items-center justify-center font-extrabold text-[11px] text-emerald-300 text-center">
+              ${escapeHTML(bk.bankName)}
+            </div>
+            <div>
+              <div class="text-xs text-stone-400">${escapeHTML(bk.bankName)} • a.n. <span class="text-stone-200 font-semibold">${escapeHTML(bk.accountHolder)}</span></div>
+              <div class="text-base font-mono font-bold text-amber-300 tracking-wider">${escapeHTML(bk.accountNumber)}</div>
+            </div>
+          </div>
+          <button type="button" onclick="copyText('${escapeHTML(bk.accountNumber)}', '${escapeHTML(bk.bankName)}')" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-stone-950 text-xs font-semibold text-amber-300 transition flex items-center justify-center gap-1.5 self-start sm:self-center">
+            <i class="fa-regular fa-copy"></i> Salin No. Rek
+          </button>
+        </div>
+      `).join('');
+
+      // Render E-Wallet
+      document.getElementById('panel-ewallet').innerHTML = `
+        <div class="p-4 rounded-xl bg-borneo-dark border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+              <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[11px] font-bold">DANA</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[11px] font-bold">GoPay</span>
+              <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[11px] font-bold">OVO</span>
+              <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 text-[11px] font-bold">ShopeePay</span>
+            </div>
+            <div class="text-xs text-stone-400">E-Wallet Official • a.n. <span class="text-stone-200 font-semibold">${escapeHTML(payments.ewalletHolder)}</span></div>
+            <div class="text-base font-mono font-bold text-amber-300 tracking-wider mt-0.5">${escapeHTML(payments.ewalletNumber)}</div>
+          </div>
+          <button type="button" onclick="copyText('${escapeHTML(payments.ewalletNumber)}', 'Nomor E-Wallet')" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-stone-950 text-xs font-semibold text-amber-300 transition flex items-center justify-center gap-1.5 self-start sm:self-center">
+            <i class="fa-regular fa-copy"></i> Salin Nomor
+          </button>
+        </div>
+      `;
+
+      // Render QRIS
+      document.getElementById('qris-merchant-name').textContent = payments.qrisMerchant;
+      const qrisContainer = document.getElementById('qris-visual-container');
+      if (payments.qrisCustomImage) {
+        qrisContainer.innerHTML = `<img src="${payments.qrisCustomImage}" alt="QRIS Pembayaran" class="w-full h-full object-contain rounded-lg" />`;
+      } else {
+        qrisContainer.innerHTML = `
+          <svg class="w-full h-full text-stone-900" viewBox="0 0 100 100" fill="currentColor">
+            <path d="M10 10h25v25H10V10zm5 5v15h15V15H15zm5 5h5v5h-5v-5z"/>
+            <path d="M65 10h25v25H65V10zm5 5v15h15V15H70zm5 5h5v5h-5v-5z"/>
+            <path d="M10 65h25v25H10V65zm5 5v15h15V70H15zm5 5h5v5h-5v-5z"/>
+            <rect x="42" y="12" width="5" height="5"/><rect x="52" y="12" width="5" height="10"/>
+            <rect x="42" y="24" width="10" height="5"/><rect x="47" y="34" width="5" height="5"/>
+            <rect x="12" y="42" width="10" height="5"/><rect x="28" y="42" width="5" height="10"/>
+            <rect x="42" y="42" width="16" height="16" rx="3" fill="#c85a32"/>
+            <rect x="65" y="42" width="10" height="5"/><rect x="82" y="42" width="8" height="10"/>
+            <rect x="42" y="65" width="5" height="12"/><rect x="52" y="70" width="10" height="5"/>
+            <rect x="68" y="65" width="8" height="8"/><rect x="80" y="72" width="10" height="5"/>
+            <rect x="42" y="83" width="15" height="7"/><rect x="65" y="82" width="12" height="8"/>
+          </svg>
+        `;
+      }
+
+      // Skema DP Toggle
+      const schemeDpEl = document.getElementById('scheme-dp');
+      if (payments.dpEnabled) {
+        schemeDpEl.classList.remove('hidden');
+        document.getElementById('dp-label-title').textContent = `Down Payment (DP ${payments.dpPercent}%)`;
+      } else {
+        schemeDpEl.classList.add('hidden');
+        uiState.paymentScheme = 'FULL';
+      }
+
+      updateCalculations();
+    }
+
+    function selectDestination(destId) {
+      uiState.selectedDestId = destId;
+      renderPublicSite();
+    }
+
+    function updateCalculations() {
+      const dest = appConfig.destinations.find(d => d.id === uiState.selectedDestId) || appConfig.destinations[0];
+      if (!dest) return;
+
+      document.getElementById('price-paket-A').innerHTML = `${formatRupiah(dest.priceA)} <span class="text-xs font-normal text-stone-400">/orang</span>`;
+      document.getElementById('price-paket-B').innerHTML = `${formatRupiah(dest.priceB)} <span class="text-xs font-normal text-stone-400">/orang</span>`;
+
+      document.getElementById('facilities-paket-A').innerHTML = (dest.facA || []).map(f =>
+        `<li class="flex items-start gap-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>${escapeHTML(f)}</span></li>`
+      ).join('');
+
+      document.getElementById('facilities-paket-B').innerHTML = (dest.facB || []).map(f =>
+        `<li class="flex items-start gap-2"><i class="fa-solid fa-star text-amber-400 mt-0.5"></i><span>${escapeHTML(f)}</span></li>`
+      ).join('');
+
+      const unitPrice = uiState.packageType === 'A' ? Number(dest.priceA) : Number(dest.priceB);
+      const subtotal = unitPrice * uiState.qty;
+      const dpRatio = (appConfig.payments.dpPercent || 50) / 100;
+      const payNow = uiState.paymentScheme === 'DP' ? Math.round(subtotal * dpRatio) : subtotal;
+      const remaining = subtotal - payNow;
+
+      document.getElementById('summary-dest').textContent = dest.name;
+      document.getElementById('summary-mdpl').textContent = dest.elevation;
+      document.getElementById('summary-pkg').textContent = `Paket ${uiState.packageType}`;
+      document.getElementById('summary-unit-price').textContent = formatRupiah(unitPrice);
+      document.getElementById('summary-qty').textContent = `${uiState.qty} Orang`;
+      document.getElementById('summary-scheme').textContent = uiState.paymentScheme === 'DP'
+        ? `DP (${appConfig.payments.dpPercent}%)`
+        : 'Lunas (100%)';
+
+      document.getElementById('summary-subtotal').textContent = formatRupiah(subtotal);
+      const dpRemRow = document.getElementById('dp-remaining-row');
+      if (uiState.paymentScheme === 'DP') {
+        dpRemRow.classList.remove('hidden');
+        document.getElementById('summary-remaining').textContent = formatRupiah(remaining);
+      } else {
+        dpRemRow.classList.add('hidden');
+      }
+      document.getElementById('summary-total-pay').textContent = formatRupiah(payNow);
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. PANEL ADMIN / CMS & SESSION SECURITY
+    // -------------------------------------------------------------------------
+    function resetAdminIdleTimer() {
+      if (!uiState.isAdminAuthenticated) return;
+      clearTimeout(uiState.idleTimer);
+      uiState.idleTimer = setTimeout(() => {
+        logoutAdmin('Sesi pengelola otomatis dikunci karena tidak aktif selama 15 menit.');
+      }, 15 * 60 * 1000);
+    }
+
+    function openAdminDashboard() {
+      uiState.isAdminAuthenticated = true;
+      document.getElementById('admin-login-modal').classList.add('hidden');
+      document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+      document.getElementById('admin-btn-label').textContent = 'Dashboard Aktif';
+      populateCmsForms();
+      resetAdminIdleTimer();
+    }
+
+    function logoutAdmin(msg) {
+      uiState.isAdminAuthenticated = false;
+      clearTimeout(uiState.idleTimer);
+      document.getElementById('admin-dashboard-modal').classList.add('hidden');
+      document.getElementById('admin-btn-label').textContent = 'Admin / Pengelola';
+      if (msg) showToast(msg);
+    }
+
+    function updateCmsLogoPreview() {
+      const frame = document.getElementById('cms-logo-frame').value;
+      const previewFrame = document.getElementById('cms-logo-preview-frame');
+      const previewImg = document.getElementById('cms-logo-preview-img');
+      const previewDefault = document.getElementById('cms-logo-preview-default');
+
+      const frameClasses = {
+        circle: 'rounded-full border-2 border-amber-400/60 bg-borneo-card',
+        rounded: 'rounded-2xl border-2 border-amber-400/60 bg-borneo-card',
+        noframe: 'rounded-none border-0 bg-transparent'
+      };
+      previewFrame.className = `w-28 h-28 flex items-center justify-center overflow-hidden ${frameClasses[frame] || frameClasses.circle}`;
+
+      const activeLogo = uiState.pendingLogoDataUrl !== undefined
+        ? uiState.pendingLogoDataUrl
+        : appConfig.brand.customLogo;
+
+      if (activeLogo) {
+        previewDefault.classList.add('hidden');
+        previewImg.src = activeLogo;
+        previewImg.className = frame === 'noframe' ? 'w-full h-full object-contain' : 'w-full h-full object-cover';
+        previewImg.classList.remove('hidden');
+      } else {
+        previewImg.classList.add('hidden');
+        previewDefault.classList.remove('hidden');
+      }
+
+      document.getElementById('cms-preview-under-title').textContent = document.getElementById('cms-under-logo-title').value;
+      document.getElementById('cms-preview-under-tagline').textContent = document.getElementById('cms-under-logo-tagline').value;
+      document.getElementById('cms-preview-under-subtext').textContent = document.getElementById('cms-under-logo-subtext').value;
+    }
+
+    function populateCmsForms() {
+      const { brand, payments } = appConfig;
+      uiState.pendingLogoDataUrl = undefined;
+      document.getElementById('cms-logo-upload').value = '';
+      document.getElementById('cms-logo-upload-label').textContent = 'Pilih File Logo Baru (Maks 5MB • Otomatis Validasi & Resize)';
+
+      document.getElementById('cms-logo-frame').value = brand.logoFrame || 'circle';
+      document.getElementById('cms-logo-size').value = brand.logoSize || 'medium';
+      document.getElementById('cms-under-logo-title').value = brand.underLogoTitle ?? '';
+      document.getElementById('cms-under-logo-tagline').value = brand.underLogoTagline ?? '';
+      document.getElementById('cms-under-logo-subtext').value = brand.underLogoSubtext ?? '';
+      document.getElementById('cms-show-estd').value = String(brand.showEstd !== false);
+
+      document.getElementById('cms-brand-name').value = brand.name;
+      document.getElementById('cms-brand-estd').value = brand.estd;
+      document.getElementById('cms-brand-tagline').value = brand.tagline;
+      document.getElementById('cms-admin-wa').value = brand.adminWa;
+      document.getElementById('cms-theme-gold').value = brand.themeGold || '#d4af37';
+      document.getElementById('cms-announcement').value = brand.announcement;
+      document.getElementById('cms-brand-desc').value = brand.desc;
+
+      updateCmsLogoPreview();
+
+      document.getElementById('cms-dp-enabled').value = String(payments.dpEnabled);
+      document.getElementById('cms-dp-percent').value = payments.dpPercent;
+      document.getElementById('cms-ewallet-number').value = payments.ewalletNumber;
+      document.getElementById('cms-ewallet-holder').value = payments.ewalletHolder;
+      document.getElementById('cms-qris-merchant').value = payments.qrisMerchant;
+
+      renderCmsTrips();
+      renderCmsBanks();
+      renderCmsBookings();
+    }
+
+    function renderCmsTrips() {
+      const container = document.getElementById('cms-trips-list');
+      container.innerHTML = appConfig.destinations.map(d => `
+        <div class="p-4 rounded-xl bg-borneo-dark border border-white/10 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-400/20 text-amber-300">${escapeHTML(d.status)}</span>
+              <span class="text-[11px] text-stone-400">${escapeHTML(d.elevation)}</span>
+            </div>
+            <h4 class="font-bold text-sm text-stone-100 mt-1.5">${escapeHTML(d.name)}</h4>
+            <div class="mt-2 flex gap-4 text-xs font-mono">
+              <span class="text-stone-300">Paket A: <strong>${formatRupiah(d.priceA)}</strong></span>
+              <span class="text-amber-400">Paket B: <strong>${formatRupiah(d.priceB)}</strong></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-2 border-t border-white/10">
+            <button type="button" onclick="editTripItem('${escapeHTML(d.id)}')" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-amber-400 hover:text-stone-950 text-xs font-semibold text-amber-300 transition">
+              <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+            </button>
+            <button type="button" onclick="deleteTripItem('${escapeHTML(d.id)}')" class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs font-semibold text-rose-300 transition">
+              <i class="fa-solid fa-trash mr-1"></i> Hapus
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editTripItem(id) {
+      const d = appConfig.destinations.find(item => item.id === id);
+      if (!d) return;
+      document.getElementById('trip-editor-title').textContent = `Edit Destinasi: ${d.name}`;
+      document.getElementById('edit-trip-id').value = d.id;
+      document.getElementById('trip-name-input').value = d.name;
+      document.getElementById('trip-elev-input').value = d.elevation;
+      document.getElementById('trip-status-input').value = d.status || 'Buka';
+      document.getElementById('trip-price-a-input').value = d.priceA;
+      document.getElementById('trip-price-b-input').value = d.priceB;
+      document.getElementById('trip-tag-input').value = d.tag || '';
+      document.getElementById('trip-fac-a-input').value = (d.facA || []).join(', ');
+      document.getElementById('trip-fac-b-input').value = (d.facB || []).join(', ');
+      document.getElementById('btn-cancel-trip-edit').classList.remove('hidden');
+    }
+
+    function resetTripEditorForm() {
+      document.getElementById('trip-editor-title').textContent = 'Tambah / Edit Destinasi Trip';
+      document.getElementById('edit-trip-id').value = '';
+      document.getElementById('trip-name-input').value = '';
+      document.getElementById('trip-elev-input').value = '';
+      document.getElementById('trip-status-input').value = 'Buka';
+      document.getElementById('trip-price-a-input').value = '';
+      document.getElementById('trip-price-b-input').value = '';
+      document.getElementById('trip-tag-input').value = '';
+      document.getElementById('trip-fac-a-input').value = '';
+      document.getElementById('trip-fac-b-input').value = '';
+      document.getElementById('btn-cancel-trip-edit').classList.add('hidden');
+    }
+
+    function deleteTripItem(id) {
+      if (appConfig.destinations.length <= 1) {
+        showToast('Minimal harus tersisa 1 destinasi aktif.', 'error');
+        return;
+      }
+      appConfig.destinations = appConfig.destinations.filter(d => d.id !== id);
+      saveConfig();
+      renderCmsTrips();
+      renderPublicSite();
+      showToast('Destinasi berhasil dihapus.');
+    }
+
+    function renderCmsBanks() {
+      const list = document.getElementById('cms-bank-list');
+      list.innerHTML = appConfig.payments.banks.map(bk => `
+        <div class="p-3 rounded-xl bg-borneo-dark border border-white/10 flex items-center justify-between gap-3 text-xs">
+          <div>
+            <span class="font-bold text-amber-300">${escapeHTML(bk.bankName)}</span> —
+            <span class="font-mono text-stone-100">${escapeHTML(bk.accountNumber)}</span>
+            <span class="text-stone-400"> (a.n. ${escapeHTML(bk.accountHolder)})</span>
+          </div>
+          <button type="button" onclick="deleteBankItem('${escapeHTML(bk.id)}')" class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 font-semibold">
+            Hapus
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function deleteBankItem(id) {
+      appConfig.payments.banks = appConfig.payments.banks.filter(b => b.id !== id);
+      saveConfig();
+      renderCmsBanks();
+      renderPublicSite();
+      showToast('Rekening bank dihapus.');
+    }
+
+    function renderCmsBookings() {
+      document.getElementById('cms-booking-count').textContent = bookingsList.length;
+      const tbody = document.getElementById('cms-bookings-tbody');
+      if (bookingsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-stone-400">Belum ada data pendaftar masuk.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = bookingsList.map(b => {
+        const isVerified = b.status === 'Terverifikasi';
+        return `
+          <tr class="hover:bg-white/5">
+            <td class="py-3 px-3 font-mono font-bold text-amber-300">${escapeHTML(b.id)}</td>
+            <td class="py-3 px-3">
+              <div class="font-bold text-stone-100">${escapeHTML(b.fullName)}</div>
+              <div class="font-mono text-[11px] text-emerald-300">${escapeHTML(b.waNumber)}</div>
+            </td>
+            <td class="py-3 px-3">
+              <div class="font-semibold text-stone-200">${escapeHTML(b.destName)}</div>
+              <div class="text-[11px] text-stone-400">Paket ${escapeHTML(b.packageType)} • ${b.qty} Org</div>
+            </td>
+            <td class="py-3 px-3 text-stone-300">${escapeHTML(b.departureDate)}</td>
+            <td class="py-3 px-3 font-mono font-bold text-amber-300">${formatRupiah(b.totalPaid)} <span class="block text-[10px] font-sans text-stone-400">${escapeHTML(b.scheme)}</span></td>
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isVerified ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                ${escapeHTML(b.status)}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-right space-x-1">
+              ${!isVerified ? `<button type="button" onclick="verifyBooking('${escapeHTML(b.id)}')" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Verifikasi</button>` : ''}
+              <button type="button" onclick="deleteBooking('${escapeHTML(b.id)}')" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function verifyBooking(id) {
+      const idx = bookingsList.findIndex(b => b.id === id);
+      if (idx !== -1) {
+        bookingsList[idx].status = 'Terverifikasi';
+        saveBookings();
+        renderCmsBookings();
+        showToast(`Booking ${id} ditandai Terverifikasi!`);
+      }
+    }
+
+    function deleteBooking(id) {
+      bookingsList = bookingsList.filter(b => b.id !== id);
+      saveBookings();
+      renderCmsBookings();
+      showToast('Data pendaftar dihapus.');
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. EVENT LISTENERS UTAMA
+    // -------------------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', async () => {
+      await ensureAuthInitialized();
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('departure-date').setAttribute('min', today);
+
+      renderPublicSite();
+      document.getElementById('cms-booking-count').textContent = bookingsList.length;
+
+      // Reset timer idle saat admin beraktivitas
+      ['click', 'keydown', 'mousemove'].forEach(evt => {
+        document.addEventListener(evt, resetAdminIdleTimer, { passive: true });
+      });
+
+      // Paket A / B Radio
+      document.querySelectorAll('input[name="package_type"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          uiState.packageType = e.target.value;
+          const cardA = document.getElementById('card-paket-A');
+          const cardB = document.getElementById('card-paket-B');
+          const checkA = document.getElementById('check-paket-A');
+          const checkB = document.getElementById('check-paket-B');
+
+          if (uiState.packageType === 'A') {
+            cardA.classList.add('card-selected');
+            cardB.classList.remove('card-selected');
+            checkA.className = 'fa-solid fa-circle-check text-amber-400 text-lg';
+            checkB.className = 'fa-regular fa-circle text-stone-500 text-lg';
+          } else {
+            cardB.classList.add('card-selected');
+            cardA.classList.remove('card-selected');
+            checkB.className = 'fa-solid fa-circle-check text-amber-400 text-lg';
+            checkA.className = 'fa-regular fa-circle text-stone-500 text-lg';
+          }
+          updateCalculations();
+        });
+      });
+
+      // Stepper Jumlah Peserta
+      document.getElementById('btn-qty-minus').addEventListener('click', () => {
+        if (uiState.qty > 1) {
+          uiState.qty--;
+          document.getElementById('participant-qty').value = uiState.qty;
+          updateCalculations();
+        }
+      });
+      document.getElementById('btn-qty-plus').addEventListener('click', () => {
+        if (uiState.qty < 50) {
+          uiState.qty++;
+          document.getElementById('participant-qty').value = uiState.qty;
+          updateCalculations();
+        }
+      });
+
+      // Skema Pembayaran (Full vs DP)
+      document.querySelectorAll('input[name="payment_scheme"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          uiState.paymentScheme = e.target.value;
+          const fullEl = document.getElementById('scheme-full');
+          const dpEl = document.getElementById('scheme-dp');
+          if (uiState.paymentScheme === 'FULL') {
+            fullEl.className = 'cursor-pointer rounded-xl border-2 border-amber-400 bg-amber-400/10 p-3.5 flex items-center justify-between transition';
+            fullEl.querySelector('i').className = 'fa-solid fa-circle-check text-amber-400';
+            dpEl.className = 'cursor-pointer rounded-xl border-2 border-white/10 bg-borneo-dark/80 p-3.5 flex items-center justify-between transition hover:border-amber-400/40';
+            dpEl.querySelector('i').className = 'fa-regular fa-circle text-stone-500';
+          } else {
+            dpEl.className = 'cursor-pointer rounded-xl border-2 border-amber-400 bg-amber-400/10 p-3.5 flex items-center justify-between transition';
+            dpEl.querySelector('i').className = 'fa-solid fa-circle-check text-amber-400';
+            fullEl.className = 'cursor-pointer rounded-xl border-2 border-white/10 bg-borneo-dark/80 p-3.5 flex items-center justify-between transition hover:border-amber-400/40';
+            fullEl.querySelector('i').className = 'fa-regular fa-circle text-stone-500';
+          }
+          updateCalculations();
+        });
+      });
+
+      // Tab Metode Pembayaran Publik
+      document.querySelectorAll('.pay-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-pay-tab');
+          uiState.paymentTab = target;
+          document.querySelectorAll('.pay-tab-btn').forEach(b => {
+            b.className = 'pay-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-dark text-stone-300 border border-white/10 hover:border-amber-400/40 transition flex items-center gap-2';
+          });
+          btn.className = 'pay-tab-btn active px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-400 text-stone-950 transition flex items-center gap-2';
+          document.querySelectorAll('.pay-panel').forEach(p => p.classList.add('hidden'));
+          document.getElementById(`panel-${target}`).classList.remove('hidden');
+        });
+      });
+
+      // Upload Bukti Pembayaran dengan Validasi Magic Byte
+      const proofInput = document.getElementById('payment-proof');
+      proofInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const check = await verifyFileSignature(file);
+        if (!check.ok) {
+          showToast(check.reason, 'error');
+          proofInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          uiState.proofDataUrl = ev.target.result;
+          uiState.proofFileName = file.name;
+          const previewImg = document.getElementById('proof-preview-img');
+          if (check.isPdf) {
+            previewImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23991b1b'/%3E%3Ctext x='32' y='38' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold' font-size='16'%3EPDF%3C/text%3E%3C/svg%3E";
+          } else {
+            previewImg.src = ev.target.result;
+          }
+          document.getElementById('proof-file-name').textContent = file.name;
+          document.getElementById('file-label-text').textContent = 'Ganti Bukti Pembayaran';
+          document.getElementById('proof-preview-box').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('btn-remove-proof').addEventListener('click', () => {
+        uiState.proofDataUrl = null;
+        uiState.proofFileName = '';
+        proofInput.value = '';
+        document.getElementById('file-label-text').textContent = 'Pilih Bukti Transfer (JPG, PNG, WEBP, PDF)';
+        document.getElementById('proof-preview-box').classList.add('hidden');
+      });
+
+      // Submit Form Pendaftaran Peserta
+      document.getElementById('trip-registration-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // 1. Cek Honeypot Anti-Bot
+        if (document.getElementById('website-url-trap').value !== '') {
+          return; // Blokir diam-diam spam bot
+        }
+
+        // 2. Cek Rate Limiter (jeda 5 detik antar pengiriman)
+        const now = Date.now();
+        if (now - uiState.lastSubmitTs < 5000) {
+          showToast('Mohon tunggu beberapa detik sebelum mengirim ulang.', 'error');
+          return;
+        }
+
+        const fullName = document.getElementById('full-name').value.trim();
+        const waNumber = document.getElementById('wa-number').value.trim();
+        const emergencyContact = document.getElementById('emergency-contact').value.trim();
+        const departureDate = document.getElementById('departure-date').value;
+        const address = document.getElementById('address').value.trim();
+        const medicalNotes = document.getElementById('medical-notes').value.trim() || 'Tidak ada';
+
+        if (!fullName || !waNumber || !emergencyContact || !departureDate || !address) {
+          showToast('Lengkapi seluruh data peserta yang bertanda wajib (*).', 'error');
+          return;
+        }
+
+        if (!/^[0-9+\-\s]{8,18}$/.test(waNumber)) {
+          showToast('Format nomor WhatsApp tidak valid.', 'error');
+          return;
+        }
+
+        if (!uiState.proofDataUrl) {
+          showToast('Silakan upload bukti pembayaran terlebih dahulu.', 'error');
+          return;
+        }
+
+        const dest = appConfig.destinations.find(d => d.id === uiState.selectedDestId);
+        if (!dest || dest.status === 'Penuh') {
+          showToast('Destinasi yang dipilih sedang penuh atau tidak tersedia.', 'error');
+          return;
+        }
+
+        const unitPrice = uiState.packageType === 'A' ? Number(dest.priceA) : Number(dest.priceB);
+        const subtotal = unitPrice * uiState.qty;
+        const dpRatio = (appConfig.payments.dpPercent || 50) / 100;
+        const totalPaid = uiState.paymentScheme === 'DP' ? Math.round(subtotal * dpRatio) : subtotal;
+
+        // Generate Kode Booking Kriptografis
+        const randBytes = new Uint32Array(1);
+        crypto.getRandomValues(randBytes);
+        const bookingId = 'BHMP-' + String(randBytes[0] % 900000 + 100000);
+
+        const methodMap = { bank: 'Transfer Bank', ewallet: 'E-Wallet', qris: 'QRIS' };
+        const schemeLabel = uiState.paymentScheme === 'DP' ? `DP ${appConfig.payments.dpPercent}%` : 'Lunas 100%';
+
+        // Simpan ke daftar pendaftar CMS
+        bookingsList.unshift({
+          id: bookingId,
+          fullName,
+          waNumber,
+          emergencyContact,
+          departureDate,
+          address,
+          medicalNotes,
+          destId: dest.id,
+          destName: dest.name,
+          packageType: uiState.packageType,
+          qty: uiState.qty,
+          totalPaid,
+          scheme: schemeLabel,
+          method: methodMap[uiState.paymentTab],
+          status: 'Menunggu Verifikasi',
+          createdAt: new Date().toISOString()
+        });
+        saveBookings();
+        uiState.lastSubmitTs = now;
+        document.getElementById('cms-booking-count').textContent = bookingsList.length;
+
+        // Tampilkan E-Ticket (termasuk Logo Kustom & Teks Bawah Logo terbaru)
+        const ticketLogoBox = document.getElementById('ticket-logo-box');
+        const ticketCustomLogo = document.getElementById('ticket-custom-logo');
+        const ticketDefaultIcon = document.getElementById('ticket-default-icon');
+        ticketLogoBox.className = `w-12 h-12 ${appConfig.brand.logoFrame === 'rounded' ? 'rounded-xl' : 'rounded-full'} bg-stone-950/15 border border-stone-950/30 flex items-center justify-center overflow-hidden shrink-0`;
+        if (appConfig.brand.customLogo) {
+          ticketCustomLogo.src = appConfig.brand.customLogo;
+          ticketCustomLogo.classList.remove('hidden');
+          ticketDefaultIcon.classList.add('hidden');
+        } else {
+          ticketCustomLogo.classList.add('hidden');
+          ticketDefaultIcon.classList.remove('hidden');
+        }
+
+        document.getElementById('ticket-brand-name').textContent = appConfig.brand.underLogoTitle || appConfig.brand.name;
+        document.getElementById('ticket-tagline').textContent = `“${appConfig.brand.underLogoTagline || appConfig.brand.tagline}”`;
+        const ticketSubtextEl = document.getElementById('ticket-under-subtext');
+        ticketSubtextEl.textContent = appConfig.brand.underLogoSubtext || '';
+        ticketSubtextEl.classList.toggle('hidden', !appConfig.brand.underLogoSubtext);
+
+        document.getElementById('ticket-booking-id').textContent = bookingId;
+        document.getElementById('ticket-name').textContent = fullName;
+        document.getElementById('ticket-wa').textContent = waNumber;
+        document.getElementById('ticket-dest').textContent = `${dest.name} — Paket ${uiState.packageType}`;
+        document.getElementById('ticket-date').textContent = departureDate;
+        document.getElementById('ticket-qty').textContent = `${uiState.qty} Orang`;
+        document.getElementById('ticket-emergency').textContent = emergencyContact;
+        document.getElementById('ticket-total').textContent = formatRupiah(totalPaid);
+        document.getElementById('ticket-method').textContent = `via ${methodMap[uiState.paymentTab]} (${schemeLabel})`;
+        document.getElementById('ticket-scheme-badge').textContent = schemeLabel;
+
+        // Siapkan tombol kirim konfirmasi ke WhatsApp Admin
+        const btnSendWa = document.getElementById('btn-send-wa');
+        btnSendWa.onclick = () => {
+          const adminWa = (appConfig.brand.adminWa || '6281251992026').replace(/[^0-9]/g, '');
+          const msg = [
+            `*KONFIRMASI PENDAFTARAN TRIP ${appConfig.brand.name}*`,
+            `Kode Booking: *${bookingId}*`,
+            `Nama: ${fullName}`,
+            `WhatsApp: ${waNumber}`,
+            `Destinasi: ${dest.name}`,
+            `Paket: Paket ${uiState.packageType} (${uiState.qty} Orang)`,
+            `Tanggal: ${departureDate}`,
+            `Pembayaran: ${formatRupiah(totalPaid)} (${schemeLabel} via ${methodMap[uiState.paymentTab]})`,
+            `Kontak Darurat: ${emergencyContact}`,
+            `Catatan: ${medicalNotes}`
+          ].join('\n');
+          window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+        };
+
+        document.getElementById('receipt-modal').classList.remove('hidden');
+        showToast('Pendaftaran berhasil tercatat! E-Ticket siap dikirim.');
+      });
+
+      // Live Preview & Upload Logo Kustom di CMS
+      document.getElementById('cms-logo-upload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const check = await verifyFileSignature(file, true);
+        if (!check.ok || check.isPdf) {
+          showToast(check.reason || 'Gunakan file logo PNG, JPG, WEBP, atau SVG.', 'error');
+          e.target.value = '';
+          return;
+        }
+        if (check.isSvg && check.sanitizedDataUrl) {
+          uiState.pendingLogoDataUrl = check.sanitizedDataUrl;
+          document.getElementById('cms-logo-upload-label').textContent = `Siap disimpan: ${file.name} (SVG Tersanitasi)`;
+          updateCmsLogoPreview();
+          showToast('File SVG lolos sanitasi keamanan & siap disimpan!');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const resized = await resizeLogoImage(ev.target.result, 360);
+          uiState.pendingLogoDataUrl = resized;
+          document.getElementById('cms-logo-upload-label').textContent = `Siap disimpan: ${file.name}`;
+          updateCmsLogoPreview();
+          showToast('Logo berhasil diproses & siap disimpan!');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('btn-reset-default-logo').addEventListener('click', () => {
+        uiState.pendingLogoDataUrl = '';
+        document.getElementById('cms-logo-upload').value = '';
+        document.getElementById('cms-logo-upload-label').textContent = 'Logo Default BAHIMPU dipilih (Klik Simpan)';
+        updateCmsLogoPreview();
+        showToast('Preview dikembalikan ke emblem default BAHIMPU.');
+      });
+
+      ['cms-logo-frame', 'cms-under-logo-title', 'cms-under-logo-tagline', 'cms-under-logo-subtext'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateCmsLogoPreview);
+        document.getElementById(id).addEventListener('change', updateCmsLogoPreview);
+      });
+
+      // Simpan Identitas Brand, Logo & Teks Bawah Logo
+      document.getElementById('btn-save-brand').addEventListener('click', () => {
+        if (uiState.pendingLogoDataUrl !== undefined) {
+          appConfig.brand.customLogo = uiState.pendingLogoDataUrl;
+          uiState.pendingLogoDataUrl = undefined;
+        }
+        appConfig.brand.logoFrame = document.getElementById('cms-logo-frame').value || 'circle';
+        appConfig.brand.logoSize = document.getElementById('cms-logo-size').value || 'medium';
+        appConfig.brand.underLogoTitle = document.getElementById('cms-under-logo-title').value.trim();
+        appConfig.brand.underLogoTagline = document.getElementById('cms-under-logo-tagline').value.trim();
+        appConfig.brand.underLogoSubtext = document.getElementById('cms-under-logo-subtext').value.trim();
+        appConfig.brand.showEstd = document.getElementById('cms-show-estd').value === 'true';
+
+        appConfig.brand.name = document.getElementById('cms-brand-name').value.trim() || 'BAHIMPU';
+        appConfig.brand.estd = document.getElementById('cms-brand-estd').value.trim() || 'ESTD 2026';
+        appConfig.brand.tagline = document.getElementById('cms-brand-tagline').value.trim() || 'BAHAGIA BUHAN PIAN, HIMUNG PULANG KAMI';
+        appConfig.brand.adminWa = document.getElementById('cms-admin-wa').value.trim() || '6281251992026';
+        appConfig.brand.themeGold = document.getElementById('cms-theme-gold').value || '#d4af37';
+        appConfig.brand.announcement = document.getElementById('cms-announcement').value.trim();
+        appConfig.brand.desc = document.getElementById('cms-brand-desc').value.trim();
+
+        saveConfig();
+        renderPublicSite();
+        showToast('Logo, teks bawah logo & identitas berhasil diperbarui!');
+      });
+
+      document.getElementById('btn-close-modal').addEventListener('click', () => {
+        document.getElementById('receipt-modal').classList.add('hidden');
+      });
+
+      // -----------------------------------------------------------------------
+      // ADMIN LOGIN & CMS CONTROLS
+      // -----------------------------------------------------------------------
+      document.getElementById('btn-open-admin').addEventListener('click', () => {
+        if (uiState.isAdminAuthenticated) {
+          openAdminDashboard();
+          return;
+        }
+        const authObj = JSON.parse(localStorage.getItem(STORAGE_KEY_AUTH) || '{}');
+        document.getElementById('default-pin-hint').classList.toggle('hidden', !authObj.isDefault);
+        document.getElementById('admin-pin-input').value = '';
+        document.getElementById('admin-login-modal').classList.remove('hidden');
+        document.getElementById('admin-pin-input').focus();
+      });
+
+      document.getElementById('btn-close-login').addEventListener('click', () => {
+        document.getElementById('admin-login-modal').classList.add('hidden');
+      });
+
+      document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const now = Date.now();
+        if (now < uiState.lockoutUntil) {
+          showToast('Akses masih terkunci sementara.', 'error');
+          return;
+        }
+
+        const pinInput = document.getElementById('admin-pin-input').value;
+        const authObj = JSON.parse(localStorage.getItem(STORAGE_KEY_AUTH) || '{}');
+        const candidateHash = await sha256Hex((authObj.salt || '') + pinInput);
+
+        if (candidateHash === authObj.hash) {
+          uiState.failedLoginAttempts = 0;
+          openAdminDashboard();
+          showToast('Selamat datang di Panel Pengelola BAHIMPU!');
+        } else {
+          uiState.failedLoginAttempts++;
+          document.getElementById('admin-pin-input').value = '';
+          if (uiState.failedLoginAttempts >= 5) {
+            uiState.lockoutUntil = Date.now() + 60000;
+            uiState.failedLoginAttempts = 0;
+            const banner = document.getElementById('lockout-banner');
+            const timerEl = document.getElementById('lockout-timer');
+            banner.classList.remove('hidden');
+            const interval = setInterval(() => {
+              const rem = Math.ceil((uiState.lockoutUntil - Date.now()) / 1000);
+              if (rem <= 0) {
+                clearInterval(interval);
+                banner.classList.add('hidden');
+              } else {
+                timerEl.textContent = rem;
+              }
+            }, 500);
+          } else {
+            showToast(`PIN salah! Sisa percobaan: ${5 - uiState.failedLoginAttempts}x`, 'error');
+          }
+        }
+      });
+
+      document.getElementById('btn-close-dashboard').addEventListener('click', () => {
+        document.getElementById('admin-dashboard-modal').classList.add('hidden');
+      });
+
+      document.getElementById('btn-admin-logout').addEventListener('click', () => {
+        logoutAdmin('Sesi pengelola dikunci & keluar.');
+      });
+
+      // Navigasi Tab CMS
+      document.querySelectorAll('.cms-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-cms-tab');
+          document.querySelectorAll('.cms-tab-btn').forEach(b => {
+            b.className = 'cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-borneo-card text-stone-300 border border-white/10 flex items-center gap-2';
+          });
+          btn.className = 'cms-tab-btn px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-400 text-stone-950 flex items-center gap-2';
+          document.querySelectorAll('.cms-panel').forEach(p => p.classList.add('hidden'));
+          document.getElementById(`cms-panel-${target}`).classList.remove('hidden');
+        });
+      });
+
+      // Simpan / Tambah Destinasi Trip
+      document.getElementById('btn-save-trip').addEventListener('click', () => {
+        const editId = document.getElementById('edit-trip-id').value;
+        const name = document.getElementById('trip-name-input').value.trim();
+        const elevation = document.getElementById('trip-elev-input').value.trim();
+        const status = document.getElementById('trip-status-input').value;
+        const priceA = Number(document.getElementById('trip-price-a-input').value);
+        const priceB = Number(document.getElementById('trip-price-b-input').value);
+        const tag = document.getElementById('trip-tag-input').value.trim() || 'Open Trip';
+        const facAStr = document.getElementById('trip-fac-a-input').value.trim();
+        const facBStr = document.getElementById('trip-fac-b-input').value.trim();
+
+        if (!name || !elevation || isNaN(priceA) || isNaN(priceB) || priceA <= 0 || priceB <= 0) {
+          showToast('Isi nama destinasi, MDPL, serta harga Paket A & B dengan benar.', 'error');
+          return;
+        }
+
+        const facA = facAStr ? facAStr.split(',').map(s => s.trim()).filter(Boolean) : ['Simaksi Jalur', 'Local Guide & Sweeper', 'P3K & Dokumentasi'];
+        const facB = facBStr ? facBStr.split(',').map(s => s.trim()).filter(Boolean) : ['Semua Paket A', 'Tenda & Alat Masak', 'Logistik Makan & Porter Tim'];
+
+        if (editId) {
+          const idx = appConfig.destinations.findIndex(d => d.id === editId);
+          if (idx !== -1) {
+            appConfig.destinations[idx] = { id: editId, name, elevation, status, priceA, priceB, tag, facA, facB };
+          }
+          showToast('Destinasi berhasil diperbarui!');
+        } else {
+          const newId = 'trip-' + Date.now();
+          appConfig.destinations.push({ id: newId, name, elevation, status, priceA, priceB, tag, facA, facB });
+          showToast('Destinasi baru berhasil ditambahkan!');
+        }
+
+        saveConfig();
+        resetTripEditorForm();
+        renderCmsTrips();
+        renderPublicSite();
+      });
+
+      document.getElementById('btn-cancel-trip-edit').addEventListener('click', resetTripEditorForm);
+
+      // Simpan Pengaturan Pembayaran & Upload QRIS
+      document.getElementById('cms-qris-upload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const check = await verifyFileSignature(file);
+        if (!check.ok || check.isPdf) {
+          showToast('Upload gambar QRIS valid (JPG/PNG/WEBP).', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          appConfig.payments.qrisCustomImage = ev.target.result;
+          showToast('Gambar QRIS siap disimpan.');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('btn-save-payment-settings').addEventListener('click', () => {
+        appConfig.payments.dpEnabled = document.getElementById('cms-dp-enabled').value === 'true';
+        appConfig.payments.dpPercent = Math.min(90, Math.max(10, Number(document.getElementById('cms-dp-percent').value) || 50));
+        appConfig.payments.ewalletNumber = document.getElementById('cms-ewallet-number').value.trim();
+        appConfig.payments.ewalletHolder = document.getElementById('cms-ewallet-holder').value.trim();
+        appConfig.payments.qrisMerchant = document.getElementById('cms-qris-merchant').value.trim();
+
+        saveConfig();
+        renderPublicSite();
+        showToast('Pengaturan pembayaran berhasil disimpan!');
+      });
+
+      // Tambah Rekening Bank
+      document.getElementById('btn-add-bank').addEventListener('click', () => {
+        const bankName = document.getElementById('new-bank-name').value.trim().toUpperCase();
+        const accountNumber = document.getElementById('new-bank-number').value.trim();
+        const accountHolder = document.getElementById('new-bank-holder').value.trim();
+
+        if (!bankName || !accountNumber || !accountHolder) {
+          showToast('Lengkapi nama bank, nomor rekening, dan atas nama.', 'error');
+          return;
+        }
+
+        appConfig.payments.banks.push({
+          id: 'bk-' + Date.now(),
+          bankName,
+          accountNumber,
+          accountHolder
+        });
+        document.getElementById('new-bank-name').value = '';
+        document.getElementById('new-bank-number').value = '';
+        document.getElementById('new-bank-holder').value = '';
+        saveConfig();
+        renderCmsBanks();
+        renderPublicSite();
+        showToast('Rekening bank baru ditambahkan!');
+      });
+
+      // Ekspor CSV Data Pendaftar
+      document.getElementById('btn-export-csv').addEventListener('click', () => {
+        if (bookingsList.length === 0) {
+          showToast('Belum ada data pendaftar untuk diekspor.', 'error');
+          return;
+        }
+        const headers = ['Kode Booking', 'Nama', 'WhatsApp', 'Destinasi', 'Paket', 'Jumlah', 'Tanggal', 'Total Bayar', 'Skema', 'Status'];
+        const rows = bookingsList.map(b => [
+          b.id, b.fullName, b.waNumber, b.destName, b.packageType, b.qty, b.departureDate, b.totalPaid, b.scheme, b.status
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pendaftar-${appConfig.brand.name.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // Ganti PIN Admin (SHA-256 + New Random Salt)
+      document.getElementById('btn-change-pin').addEventListener('click', async () => {
+        const p1 = document.getElementById('new-admin-pin').value.trim();
+        const p2 = document.getElementById('confirm-admin-pin').value.trim();
+        if (p1.length < 6) {
+          showToast('PIN baru minimal 6 karakter/digit.', 'error');
+          return;
+        }
+        if (p1 !== p2) {
+          showToast('Konfirmasi PIN tidak cocok.', 'error');
+          return;
+        }
+
+        const randSaltBytes = new Uint8Array(16);
+        crypto.getRandomValues(randSaltBytes);
+        const newSalt = Array.from(randSaltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        const newHash = await sha256Hex(newSalt + p1);
+
+        localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify({ salt: newSalt, hash: newHash, isDefault: false }));
+        document.getElementById('new-admin-pin').value = '';
+        document.getElementById('confirm-admin-pin').value = '';
+        showToast('PIN Pengelola berhasil diperbarui dengan enkripsi SHA-256 baru!');
+      });
+
+      // Ekspor & Impor Backup JSON
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          config: appConfig,
+          bookings: bookingsList
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-${appConfig.brand.name.toLowerCase()}-cms.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('File backup JSON berhasil diunduh.');
+      });
+
+      document.getElementById('input-import-json').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!parsed.config || !parsed.config.brand || !Array.isArray(parsed.config.destinations)) {
+              throw new Error('Struktur JSON tidak valid');
+            }
+            appConfig = parsed.config;
+            if (Array.isArray(parsed.bookings)) {
+              bookingsList = parsed.bookings;
+              saveBookings();
+            }
+            saveConfig();
+            populateCmsForms();
+            renderPublicSite();
+            showToast('Backup JSON berhasil dipulihkan!');
+          } catch {
+            showToast('File JSON rusak atau tidak sesuai format.', 'error');
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('btn-reset-default').addEventListener('click', () => {
+        appConfig = cloneObj(DEFAULT_CONFIG);
+        uiState.selectedDestId = appConfig.destinations[0].id;
+        saveConfig();
+        populateCmsForms();
+        renderPublicSite();
+        showToast('Seluruh pengaturan dikembalikan ke default BAHIMPU.');
+      });
+    });
+  </script>
+</body>
+</html>
